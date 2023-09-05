@@ -1,0 +1,13 @@
+[workspace]
+members = ["rust_core"]
+
+[workspace.package]
+edition = "2021"
+authors = ["Teshin <1443965173@qq.com>"]
+repository = "https://github.com/woshihaoren4/rush"
+keywords = ["rush"]
+description = "The rules engine is based on the rete algorithm"
+
+
+[workspace.dependencies]
+wd_tools = "0.8.9"
