@@ -4,12 +4,12 @@ use serde_json::{Map, Value};
 use crate::{CalcNode, Filter, Rule};
 
 #[derive(Debug)]
-pub struct MultipleRush<C,R>{
+pub struct Rush<C,R>{
     nodes:HashMap<String,Vec<C>>,
     rules:HashMap<String,R>,
 }
 
-impl<C:CalcNode,R:Rule> MultipleRush<C,R> {
+impl<C:CalcNode,R:Rule> Rush<C,R> {
     pub fn new()->Self{
         let nodes = HashMap::new();
         let rules = HashMap::new();
@@ -20,6 +20,14 @@ impl<C:CalcNode,R:Rule> MultipleRush<C,R> {
         self.rules.insert(name.to_string(),rule);
         self
     }
+    pub fn delete_rule<T:AsRef<str>>(&mut self,name:T){
+        self.nodes.remove(name.as_ref());
+        self.rules.remove(name.as_ref());
+    }
+
+    /// input_value
+    /// 1. 计算匹配到的规则
+    /// 2. 找出规则进行结果生成
     fn input_value(&self,obj:Value)->anyhow::Result<Value>{
         let mut rules = vec![];
         'lp : for (k,v) in self.nodes.iter(){
@@ -41,7 +49,7 @@ impl<C:CalcNode,R:Rule> MultipleRush<C,R> {
     }
 }
 
-impl<C:CalcNode,R:Rule> Filter for MultipleRush<C,R>  {
+impl<C:CalcNode,R:Rule> Filter for Rush<C,R>  {
     fn input<Obj: Serialize, Out: Deserialize<'static>>(&self, obj: Obj) -> anyhow::Result<Out> {
         let value = serde_json::to_value(obj)?;
         let result = self.input_value(value)?;
@@ -54,7 +62,7 @@ mod test{
     use serde::{Deserialize, Serialize};
     use serde_json::Value;
     use crate::{CalcNode, Filter, Rule};
-    use crate::multiple_rush::MultipleRush;
+    use crate::core_impl::Rush;
 
     struct CalcNodeImpl;
     impl CalcNode for CalcNodeImpl{
@@ -76,7 +84,7 @@ mod test{
     //cargo test --color=always --lib multiple_rush::test::test_simple --no-fail-fast -- --exact unstable-options --show-output
     #[test]
     fn test_simple(){
-        let mr = MultipleRush::<CalcNodeImpl,RuleImpl>::new();
+        let mr = Rush::<CalcNodeImpl,RuleImpl>::new();
         let result:ObjTest = mr.input(ObjTest { name: "hello world".into()}).expect("input failed");
         println!("result ---> {result:?}");
     }

@@ -1,5 +1,5 @@
 mod define;
-mod multiple_rush;
+mod core_impl;
 
 pub use define::*;
-pub use multiple_rush::*;
+pub use core_impl::*;
