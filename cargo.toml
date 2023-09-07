@@ -1,5 +1,5 @@
 [workspace]
-members = ["rust_core"]
+members = ["rush_core"]
 
 [workspace.package]
 edition = "2021"
@@ -10,4 +10,7 @@ description = "The rules engine is based on the rete algorithm"
 
 
 [workspace.dependencies]
-wd_tools = "0.8.9"
+wd_tools = {version = "0.8.10",features = ["point-free"]}
+anyhow = "1.0.75"
+serde = {version = "1.0.188",features = ["derive"]}
+serde_json = "1.0.105"
