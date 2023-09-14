@@ -1,0 +1,18 @@
+[package]
+name = "calc_rule"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords.workspace = true
+description.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+wd_tools.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+nom.workspace = true
+rush_core = {path = "../rush_core"}

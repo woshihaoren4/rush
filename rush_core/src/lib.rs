@@ -1,5 +1,5 @@
 mod define;
-mod core_impl;
+mod rush;
 
 pub use define::*;
-pub use core_impl::*;
+pub use rush::*;

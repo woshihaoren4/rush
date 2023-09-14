@@ -1,19 +1,25 @@
 use std::collections::HashMap;
+use std::fmt::{Debug};
+use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use crate::{CalcNode, Filter, Rule};
+use crate::{CalcNode, Filter, Function, FunctionSet, Rule};
+use wd_tools::sync::Acl;
 
 #[derive(Debug)]
 pub struct Rush<C,R>{
+    functions: Acl<HashMap<String,Arc<dyn Function>>>,
     nodes:HashMap<String,Vec<C>>,
     rules:HashMap<String,R>,
 }
 
+
 impl<C:CalcNode,R:Rule> Rush<C,R> {
     pub fn new()->Self{
+        let functions = Acl::new(HashMap::new());
         let nodes = HashMap::new();
         let rules = HashMap::new();
-        Self{nodes,rules}
+        Self{functions,nodes,rules}
     }
     pub fn register_rule<T:ToString>(mut self,name:T,nodes:Vec<C>,rule:R)->Self{
         self.nodes.insert(name.to_string(),nodes);
@@ -24,6 +30,20 @@ impl<C:CalcNode,R:Rule> Rush<C,R> {
         self.nodes.remove(name.as_ref());
         self.rules.remove(name.as_ref());
     }
+    pub fn register_function<S:Into<String>,F:Function>(self,name:S,function:F)->Self{
+        self.functions.update(|x|{
+            let mut map = (*x).clone();
+            map.insert(name.into(),Arc::new(function));
+            map
+        });self
+    }
+    pub fn delete_function<S:AsRef<str>>(self,name:S)->Self{
+        self.functions.update(|x|{
+            let mut map = (*x).clone();
+            map.remove(name.as_ref());
+            map
+        });self
+    }
 
     /// input_value
     /// 1. 计算匹配到的规则
@@ -32,7 +52,7 @@ impl<C:CalcNode,R:Rule> Rush<C,R> {
         let mut rules = vec![];
         'lp : for (k,v) in self.nodes.iter(){
             for i in v.iter(){
-                if !i.when(&obj){
+                if !i.when(self.functions.share(),&obj)?{
                     continue 'lp
                 }
             }
@@ -42,10 +62,16 @@ impl<C:CalcNode,R:Rule> Rush<C,R> {
         let mut output = Value::Object(Map::new());
         for name in rules.iter(){
             if let Some(r) = self.rules.get(name){
-                r.execute(&obj,&mut output);
+                r.execute(self.functions.share(),&obj,&mut output)?;
             }
         }
         Ok(output)
+    }
+}
+
+impl FunctionSet for HashMap<String,Arc<dyn Function>>  {
+    fn get(&self, name: &str) -> Option<Arc<dyn Function>> {
+        self.get(name).map(|a|a.clone())
     }
 }
 
@@ -59,20 +85,22 @@ impl<C:CalcNode,R:Rule> Filter for Rush<C,R>  {
 
 #[cfg(test)]
 mod test{
+    use std::sync::Arc;
     use serde::{Deserialize, Serialize};
     use serde_json::Value;
-    use crate::{CalcNode, Filter, Rule};
-    use crate::core_impl::Rush;
+    use crate::{CalcNode, Filter, FunctionSet, Rule};
+    use crate::rush::Rush;
 
     struct CalcNodeImpl;
     impl CalcNode for CalcNodeImpl{
-        fn when(&self, _input: &Value) -> bool {
-            return true
+        fn when(&self,_fs:Arc<dyn FunctionSet>, _input: &Value) ->anyhow::Result<bool>{
+            return Ok(true)
         }
     }
     struct RuleImpl;
     impl Rule for RuleImpl{
-        fn execute(&self,input:&Value,output:&mut Value) {
+        fn execute(&self,_fs:Arc<dyn FunctionSet>,_input:&Value,_output:&mut Value)->anyhow::Result<()> {
+            Ok(())
         }
     }
     #[derive(Debug,Default,Serialize,Deserialize)]
@@ -81,7 +109,7 @@ mod test{
         pub name:String
     }
 
-    //cargo test --color=always --lib multiple_rush::test::test_simple --no-fail-fast -- --exact unstable-options --show-output
+    //cargo test --color=always --lib rush::test::test_simple --no-fail-fast -- --exact unstable-options --show-output
     #[test]
     fn test_simple(){
         let mr = Rush::<CalcNodeImpl,RuleImpl>::new();

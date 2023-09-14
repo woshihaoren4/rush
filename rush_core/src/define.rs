@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -7,9 +9,17 @@ pub trait Filter{
 }
 // 计算节点
 pub trait CalcNode{
-    fn when(&self,input:&Value)->bool;
+    fn when(&self,fs:Arc<dyn FunctionSet>, input:&Value)-> anyhow::Result<bool>;
 }
 // 运算规则
 pub trait Rule{
-    fn execute(&self,input:&Value,output:&mut Value);
+    fn execute(&self,fs:Arc<dyn FunctionSet>,input:&Value,output:&mut Value)->anyhow::Result<()>;
+}
+// 函数
+pub trait Function:Debug{
+    fn call(&self,fs:Arc<dyn FunctionSet>,args:Vec<Value>)->anyhow::Result<Value>;
+}
+// 函数集
+pub trait FunctionSet:Debug{
+    fn get(&self,name:&str)->Option<Arc<dyn Function>>;
 }
