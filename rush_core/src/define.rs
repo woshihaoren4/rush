@@ -11,7 +11,7 @@ pub trait CalcNode{
     fn when(&self,fs:Arc<dyn FunctionSet>, input:&Value)-> anyhow::Result<bool>;
 }
 // 运算规则
-pub trait Rule{
+pub trait Exec {
     fn execute(&self,fs:Arc<dyn FunctionSet>,input:&Value,output:&mut Value)->anyhow::Result<()>;
 }
 // 函数

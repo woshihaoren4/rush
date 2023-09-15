@@ -204,10 +204,10 @@ impl Calc{
             }else if expr.starts_with("}"){
                 deq.push_back(Element::RightBig);
                 expr = expr.split_off(1);
-            }else if expr.starts_with("\""){ //字符串
+            }else if expr.starts_with("'"){ //字符串
                 let mut index = 0;
                 for (i,e) in expr.as_bytes().into_iter().enumerate(){
-                    if i != 0 && *e == '"' as u8{
+                    if i != 0 && *e == '\'' as u8{
                         index = i;break
                     }
                 }
@@ -215,7 +215,7 @@ impl Calc{
                 unsafe {
                     std::ptr::swap(&mut e,&mut expr);
                 }
-                let e = e.trim_matches(|c| c == '"');
+                let e = e.trim_matches(|c| c == '\'');
                 deq.push_back(Element::CALC(Calc::String(e.to_string())));
             }else if expr.starts_with("/*"){ //注释
                 let mut index = 0;

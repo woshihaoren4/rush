@@ -276,7 +276,7 @@ impl Calc {
                     }
                     if let Some(i) = n.as_f64() {
                         if let Some(s) = Number::from_f64(-i) {
-                            return Value::Number(n).ok()
+                            return Value::Number(s).ok()
                         }
                     }
                     return anyhow!("operator '-' parse number[{n}] failed").err()
@@ -446,6 +446,11 @@ impl FromStr for Calc {
         CalcBuilder::new(s).build()
     }
 }
+impl<S:AsRef<str>> From<S> for Calc{
+    fn from(value: S) -> Self {
+        Calc::from_str(value.as_ref()).unwrap()
+    }
+}
 
 impl rush_core::CalcNode for Calc{
     fn when(&self, fs: Arc<dyn FunctionSet>, input: &Value) -> anyhow::Result<bool> {
@@ -455,11 +460,9 @@ impl rush_core::CalcNode for Calc{
 
 #[cfg(test)]
 mod test{
-    use std::fmt::{Debug, Formatter};
-    use std::str::FromStr;
+    use std::fmt::{Debug};
     use std::sync::Arc;
     use serde::Serialize;
-    use serde_json::{Map, Number, Value};
     use rush_core::{CalcNode, Function, FunctionSet};
     use crate::Opt;
     use super::Calc;
@@ -487,7 +490,7 @@ mod test{
     struct FunctionSetImpl;
 
     impl FunctionSet for FunctionSetImpl {
-        fn get(&self, name: &str) -> Option<Arc<dyn Function>> {
+        fn get(&self, _name: &str) -> Option<Arc<dyn Function>> {
             None
         }
     }

@@ -3,7 +3,7 @@ use std::fmt::{Debug, Formatter};
 use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use crate::{CalcNode, Filter, Function, FunctionImpl, FunctionSet, HostFunction, Rule};
+use crate::{CalcNode, Filter, Function, FunctionImpl, FunctionSet, HostFunction, Exec};
 use wd_tools::sync::Acl;
 
 pub struct Rush<C,R>{
@@ -30,7 +30,7 @@ impl<C,R> Debug for Rush<C,R> {
     }
 }
 
-impl<C:CalcNode,R:Rule> Rush<C,R> {
+impl<C:CalcNode,R: Exec> Rush<C,R> {
     pub fn new()->Self{
         let functions = Acl::new(HashMap::new());
         let nodes = HashMap::new();
@@ -97,7 +97,7 @@ impl FunctionSet for HashMap<String,Arc<dyn Function>>  {
     }
 }
 
-impl<C:CalcNode,R:Rule> Filter for Rush<C,R>  {
+impl<C:CalcNode,R: Exec> Filter for Rush<C,R>  {
     fn input<Obj: Serialize, Out: Deserialize<'static>>(&self, obj: Obj) -> anyhow::Result<Out> {
         let value = serde_json::to_value(obj)?;
         let result = self.input_value(value)?;
@@ -110,7 +110,7 @@ mod test{
     use std::sync::Arc;
     use serde::{Deserialize, Serialize};
     use serde_json::Value;
-    use crate::{CalcNode, Filter, FunctionSet, Rule};
+    use crate::{CalcNode, Filter, FunctionSet, Exec};
     use crate::rush::Rush;
 
     struct CalcNodeImpl;
@@ -120,7 +120,7 @@ mod test{
         }
     }
     struct RuleImpl;
-    impl Rule for RuleImpl{
+    impl Exec for RuleImpl{
         fn execute(&self,_fs:Arc<dyn FunctionSet>,_input:&Value,_output:&mut Value)->anyhow::Result<()> {
             Ok(())
         }
