@@ -1,18 +1,34 @@
 use std::collections::HashMap;
-use std::fmt::{Debug};
+use std::fmt::{Debug, Formatter};
 use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use crate::{CalcNode, Filter, Function, FunctionSet, Rule};
+use crate::{CalcNode, Filter, Function, FunctionImpl, FunctionSet, HostFunction, Rule};
 use wd_tools::sync::Acl;
 
-#[derive(Debug)]
 pub struct Rush<C,R>{
     functions: Acl<HashMap<String,Arc<dyn Function>>>,
     nodes:HashMap<String,Vec<C>>,
     rules:HashMap<String,R>,
 }
 
+impl<C,R> Debug for Rush<C,R> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut fs = vec![];
+        for (i,_) in self.functions.share().iter(){
+            fs.push(i.to_string());
+        }
+        let mut nodes = vec![];
+        for (i,_) in self.nodes.iter(){
+            nodes.push(i.to_string());
+        }
+        let mut rules = vec![];
+        for (i,_) in self.rules.iter(){
+            rules.push(i.to_string());
+        }
+        write!(f, "{{ functions:{:?},nodes:{:?},rules:{:?} }}", fs,nodes,rules)
+    }
+}
 
 impl<C:CalcNode,R:Rule> Rush<C,R> {
     pub fn new()->Self{
@@ -30,13 +46,19 @@ impl<C:CalcNode,R:Rule> Rush<C,R> {
         self.nodes.remove(name.as_ref());
         self.rules.remove(name.as_ref());
     }
-    pub fn register_function<S:Into<String>,F:Function>(self,name:S,function:F)->Self{
+    pub fn raw_register_function<S:Into<String>,F:Function>(self,name:S,function:F)->Self{
         self.functions.update(|x|{
             let mut map = (*x).clone();
             map.insert(name.into(),Arc::new(function));
             map
         });self
     }
+    pub fn register_function<S:Into<String>,Args,Out,F>(self,name:S,function:F)->Self
+    where F:HostFunction<Args,Out> + 'static,Out:Serialize,
+    {
+        self.raw_register_function(name,FunctionImpl::new(function))
+    }
+
     pub fn delete_function<S:AsRef<str>>(self,name:S)->Self{
         self.functions.update(|x|{
             let mut map = (*x).clone();

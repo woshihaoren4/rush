@@ -539,10 +539,12 @@ mod test{
         // println!(" '~' < '||' {}",Opt::REV > Opt::OT);
     }
 
-    //cargo test --color=always --lib calc_parse::test::test_expression_simple --no-fail-fast --  --exact  unstable-options --nocapture
     #[test]
-    fn test_expression_simple(){
-        let expr = "age > 18 && native_place == \"中国\"";
+    fn test_full_parse(){
+        let expr = r#"(args1 != "hello world"
+                  || time("2023-01-02") > time(args2))
+                  && (in(args3,[1,2,3,4,"helle","world"])
+                  || 3.14 > args4 >> 2 || !args5 || false )"#;
         let calc = Calc::expression_parse(expr.into()).unwrap();
         println!("--->{}",calc.to_string());
     }
