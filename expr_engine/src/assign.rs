@@ -63,7 +63,7 @@ impl FromStr for Assign{
                 continue
             }
             if let Some((k,e)) = expr.split_once("="){
-                assign = assign.add_exec(k,e);
+                assign = assign.add_exec(k.trim_matches(|x|" \r\n\t".contains(x)),e);
             }else {
                 return anyhow!("parse[{}] failed, expr must format:[argument = expression]",i).err();
             }

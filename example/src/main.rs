@@ -1,4 +1,4 @@
-mod null_rule;
+mod simple_test;
 fn main(){
 
 }

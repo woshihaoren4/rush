@@ -13,6 +13,7 @@ description.workspace = true
 expr_engine = {path = "../expr_engine" }
 rush_core = {path = "../rush_core"}
 serde_json.workspace = true
+serde.workspace = true
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }

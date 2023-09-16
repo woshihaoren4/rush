@@ -47,15 +47,14 @@ impl ExprEngine{
         let rule = rule.as_ref();
         // 先解头
         let ce:Vec<_> = rule.split("when").collect();
-        println!("=>{:?}",ce);
         if ce.len() != 2{
             return anyhow!("rule[{}] format error,format that can be parsed：{}",rule,RULE_FORMAT).err();
         }
-        let hs:Vec<_> = ce[0].split(" ").collect();
+        let hs:Vec<_> = ce[0].trim_matches(|c|" \n\r\t".contains(c)).split(" ").collect();
         if hs.len() <= 1{
             return anyhow!("not found rule name").err();
         }
-        if hs[0].trim_start_matches(&[' ','\n','\r','\t']).to_lowercase() != RULE_TAG {
+        if hs[0].trim_matches(|c|" \n\r\t".contains(c)).to_lowercase() != RULE_TAG {
             return anyhow!("rule must start with 'rule'").err();
         }
         if hs.len() >= 4{

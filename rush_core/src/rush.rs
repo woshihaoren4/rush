@@ -81,7 +81,6 @@ impl<C:CalcNode, E: Exec> Rush<C, E> {
             }
             rules.push(k.to_string());
         }
-
         let mut output = Value::Object(Map::new());
         for name in rules.iter(){
             if let Some(r) = self.exec.get(name){

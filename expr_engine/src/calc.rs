@@ -1,10 +1,12 @@
+use std::fmt::{Debug};
 use std::str::FromStr;
 use std::sync::Arc;
 use anyhow::anyhow;
 use serde_json::{Number, Value};
 use wd_tools::{PFErr, PFOk};
 use rush_core::FunctionSet;
-use crate::CalcBuilder;
+use crate::{CalcBuilder, NotFoundFieldError};
+
 
 #[derive(Debug,Eq, PartialEq,Clone)]
 pub enum Opt{
@@ -156,7 +158,8 @@ impl Calc {
                         Value::Object(obj) => {
                             match obj.get(i) {
                                 None => {
-                                    return anyhow!("not found field[{field}]").err()
+                                    // return <NotFoundFieldError as Into<anyhow::Error>>::into(NotFoundFieldError(i.to_string())).err()
+                                    return Err(NotFoundFieldError(i.to_string()).into());
                                 }
                                 Some(s) => {
                                     input = s;
@@ -164,7 +167,7 @@ impl Calc {
                             }
                         }
                         _=>{
-                            return anyhow!("not found field[{field}]").err()
+                            return anyhow!("not found object at field[{field}]").err()
                         }
                     }
                 }
@@ -319,14 +322,14 @@ impl Calc {
             Opt::AND=> &,
             Opt::OR=> |,
             Opt::XOR=> ^,
-            Opt::SHL=> >>,
-            Opt::SHR=> <<);
+            Opt::SHL=> <<,
+            Opt::SHR=> >>);
 
         operator_number_bool!(opt,args,fs,input,
             Opt::GT=> >,
             Opt::GE=> >=,
             Opt::LT=> <,
-            Opt::LE=> >=);
+            Opt::LE=> <=);
 
 
 
@@ -454,7 +457,18 @@ impl<S:AsRef<str>> From<S> for Calc{
 
 impl rush_core::CalcNode for Calc{
     fn when(&self, fs: Arc<dyn FunctionSet>, input: &Value) -> anyhow::Result<bool> {
-        self.bool(&fs,input)
+        match self.bool(&fs,input) {
+            Ok(o) => o.ok(),
+            Err(e) => {
+                // not found field = false
+                // no return error
+                if let Some(_) = e.downcast_ref::<NotFoundFieldError>() {
+                    Ok(false)
+                }else{
+                    e.err()
+                }
+            }
+        }
     }
 }
 
