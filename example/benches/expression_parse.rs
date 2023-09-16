@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 use calc_rule::Calc;
 
 
@@ -11,9 +11,9 @@ fn simple_parse(){
 }
 
 fn full_parse(){
-    let _calc:Calc = r#"(args1 != "hello world"
-                  || utc("2023-01-02") > utc(args2))
-                  && (in(args3,[1,2,3,4,"helle","world"])
+    let _calc:Calc = r#"(args1 != 'hello world'
+                  || utc('2023-01-02') > utc(args2))
+                  && (in(args3,[1,2,3,4,'helle','world'])
                   || 3.14 > args4 >> 2 || !args5 || false )"#
         .parse().unwrap();
 }

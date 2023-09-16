@@ -9,7 +9,7 @@ use wd_tools::sync::Acl;
 pub struct Rush<C,R>{
     functions: Acl<HashMap<String,Arc<dyn Function>>>,
     nodes:HashMap<String,Vec<C>>,
-    rules:HashMap<String,R>,
+    exec:HashMap<String,R>,
 }
 
 impl<C,R> Debug for Rush<C,R> {
@@ -23,28 +23,29 @@ impl<C,R> Debug for Rush<C,R> {
             nodes.push(i.to_string());
         }
         let mut rules = vec![];
-        for (i,_) in self.rules.iter(){
+        for (i,_) in self.exec.iter(){
             rules.push(i.to_string());
         }
         write!(f, "{{ functions:{:?},nodes:{:?},rules:{:?} }}", fs,nodes,rules)
     }
 }
 
-impl<C:CalcNode,R: Exec> Rush<C,R> {
+impl<C:CalcNode, E: Exec> Rush<C, E> {
     pub fn new()->Self{
         let functions = Acl::new(HashMap::new());
         let nodes = HashMap::new();
         let rules = HashMap::new();
-        Self{functions,nodes,rules}
+        Self{functions,nodes, exec: rules }
     }
-    pub fn register_rule<T:ToString>(mut self,name:T,nodes:Vec<C>,rule:R)->Self{
-        self.nodes.insert(name.to_string(),nodes);
-        self.rules.insert(name.to_string(),rule);
+    pub fn register_rule<T:Into<String>>(mut self, name:T, nodes:Vec<C>, exec: E) ->Self{
+        let name = name.into();
+        self.nodes.insert(name.clone(),nodes);
+        self.exec.insert(name, exec);
         self
     }
     pub fn delete_rule<T:AsRef<str>>(&mut self,name:T){
         self.nodes.remove(name.as_ref());
-        self.rules.remove(name.as_ref());
+        self.exec.remove(name.as_ref());
     }
     pub fn raw_register_function<S:Into<String>,F:Function>(self,name:S,function:F)->Self{
         self.functions.update(|x|{
@@ -83,11 +84,23 @@ impl<C:CalcNode,R: Exec> Rush<C,R> {
 
         let mut output = Value::Object(Map::new());
         for name in rules.iter(){
-            if let Some(r) = self.rules.get(name){
+            if let Some(r) = self.exec.get(name){
                 r.execute(self.functions.share(),&obj,&mut output)?;
             }
         }
         Ok(output)
+    }
+}
+
+impl<C, E,I:IntoIterator<Item=(String, Vec<C>, E)>> From<I> for Rush<C, E>
+where C:CalcNode, E: Exec
+{
+    fn from(value: I) -> Self {
+        let mut rush = Rush::new();
+        for (name,calc,exec) in value{
+            rush = rush.register_rule(name,calc,exec);
+        }
+        rush
     }
 }
 

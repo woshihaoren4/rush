@@ -8,8 +8,7 @@ pub trait CalcBuilderEvent{
     fn expression_split_check(&self,_deq:&mut VecDeque<Element>)->anyhow::Result<()>{Ok(())}
     fn calc_check(&self,_calc:&mut Calc)->anyhow::Result<()>{Ok(())}
 }
-impl CalcBuilderEvent for (){
-}
+impl CalcBuilderEvent for (){}
 
 
 /// CalcBuilder 构建过程

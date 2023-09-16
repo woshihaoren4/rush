@@ -7,7 +7,7 @@ use wd_tools::PFErr;
 use rush_core::{Exec, FunctionSet};
 use crate::Calc;
 
-#[derive(Debug)]
+#[derive(Debug,Default)]
 pub struct Assign{
     execs:HashMap<String,Calc>
 }
@@ -58,7 +58,11 @@ impl FromStr for Assign{
         let ss:Vec<_> = s.split(";").collect();
         let mut assign = Assign::new();
         for i in ss{
-            if let Some((k,e)) = i.split_once("="){
+            let expr = i.trim_matches(|x|" \r\n\t".contains(x));
+            if expr.is_empty() {
+                continue
+            }
+            if let Some((k,e)) = expr.split_once("="){
                 assign = assign.add_exec(k,e);
             }else {
                 return anyhow!("parse[{}] failed, expr must format:[argument = expression]",i).err();
@@ -70,11 +74,21 @@ impl FromStr for Assign{
 
 #[cfg(test)]
 mod test{
+    use rush_core::Exec;
     use crate::Assign;
 
     #[test]
     fn test_assign_new(){
-        let a = "data.message='success'".parse::<Assign>().expect("new Assign failed");
+        let exec_expression = r#"
+        data.message = 'success';
+        data.code = 0;
+        data.value1 = [1,2,3];
+        data.value2 = args1 + args2;
+        data.value3 = !args3;
+        data.value4 = str_len('hello world');
+        data.value5 = 1>>2;
+        "#;
+        let a = exec_expression.parse::<Assign>().expect("new Assign failed");
         println!("--->{:?}",a);
     }
 }

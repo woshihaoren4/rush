@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 use std::collections::VecDeque;
 use std::str::FromStr;
 use anyhow::anyhow;
-use wd_tools::PFErr;
+use wd_tools::{PFErr, PFOk};
 use crate::{Calc, Opt};
 
 #[derive(Debug,Clone,PartialEq)]
@@ -267,7 +267,7 @@ impl Calc{
                         if e == '(' { //函数
                             ty = 2;
                             break
-                        }else if e.is_ascii_digit() || e.is_alphabetic() || e == '_' || e == '_'{
+                        }else if e.is_ascii_digit() || e.is_alphabetic() || e == '_' || e == '_' || e == '.'{
 
                         }else {
                             break
@@ -305,7 +305,8 @@ impl Calc{
             return if let Some(s) = calc {
                 Ok(s)
             } else {
-                anyhow!("expression is null").err()
+                // anyhow!("expression is null").err()
+                Calc::NULL.ok()
             }
         };
         let ele = deq.pop_front().unwrap();
@@ -483,6 +484,7 @@ impl Calc{
         return anyhow!("element[{le:?} {re:?}] mismatch").err()
     }
 
+    #[allow(dead_code)]
     pub(crate) fn expression_parse(expr:String)->anyhow::Result<Calc>{
         let mut deq = Self::expression_split(expr)?;
 

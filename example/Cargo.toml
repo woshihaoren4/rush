@@ -17,7 +17,11 @@ rush_core = {path = "../rush_core"}
 criterion = { version = "0.5", features = ["html_reports"] }
 
 [[bench]]
-name = "benchmarks"
+name = "expression_parse"
+harness = false
+
+[[bench]]
+name = "assign_simple_parse"
 harness = false
 
 ## https://bheisler.github.io/criterion.rs/book/faq.html#cargo-bench-gives-unrecognized-option-errors-for-valid-command-line-options
