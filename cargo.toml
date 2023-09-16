@@ -1,5 +1,5 @@
 [workspace]
-members = ["rush_core","calc_rule","example"]
+members = ["rush_core","expr_engine","example"]
 
 [workspace.package]
 edition = "2021"

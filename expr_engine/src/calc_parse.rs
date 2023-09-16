@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 use std::collections::VecDeque;
 use std::str::FromStr;
 use anyhow::anyhow;
-use wd_tools::{PFErr, PFOk};
+use wd_tools::{PFErr};
 use crate::{Calc, Opt};
 
 #[derive(Debug,Clone,PartialEq)]
@@ -305,8 +305,8 @@ impl Calc{
             return if let Some(s) = calc {
                 Ok(s)
             } else {
-                // anyhow!("expression is null").err()
-                Calc::NULL.ok()
+                anyhow!("expression is null").err()
+                // Calc::NULL.ok()
             }
         };
         let ele = deq.pop_front().unwrap();

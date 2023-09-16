@@ -1,6 +1,4 @@
 use std::collections::HashMap;
-use std::slice::Iter;
-use std::sync::mpsc::TryIter;
 use anyhow::anyhow;
 use wd_tools::PFErr;
 use crate::{Assign, Calc};
@@ -49,14 +47,15 @@ impl ExprEngine{
         let rule = rule.as_ref();
         // 先解头
         let ce:Vec<_> = rule.split("when").collect();
+        println!("=>{:?}",ce);
         if ce.len() != 2{
-            return anyhow!("rule format error,format that can be parsed：{}",RULE_FORMAT).err();
+            return anyhow!("rule[{}] format error,format that can be parsed：{}",rule,RULE_FORMAT).err();
         }
         let hs:Vec<_> = ce[0].split(" ").collect();
         if hs.len() <= 1{
             return anyhow!("not found rule name").err();
         }
-        if hs[0].to_lowercase() != RULE_TAG {
+        if hs[0].trim_start_matches(&[' ','\n','\r','\t']).to_lowercase() != RULE_TAG {
             return anyhow!("rule must start with 'rule'").err();
         }
         if hs.len() >= 4{
@@ -68,7 +67,7 @@ impl ExprEngine{
         //再解析条件
         let ce:Vec<_> = ce[1].split("then").collect();
         if ce.len()!= 2{
-            return anyhow!("rule format error,format that can be parsed：{}",RULE_FORMAT).err();
+            return anyhow!("rule[{}] format error,format that can be parsed：{}",rule,RULE_FORMAT).err();
         }
         // let cs:Vec<_> = ce[0].split(";").collect();
         self.register_rule_by_expr(name,ce[0],ce[1])?;
@@ -87,7 +86,7 @@ impl IntoIterator for ExprEngine{
 
 impl<'a,S:IntoIterator<Item=&'a str>> From<S> for ExprEngine
 {
-    fn from(mut value: S) -> Self {
+    fn from(value: S) -> Self {
         let mut ee = ExprEngine::default();
         for i in value{
             ee.register_rule(i).expect("from item parse rule failed");

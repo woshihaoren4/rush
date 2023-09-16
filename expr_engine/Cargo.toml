@@ -1,5 +1,5 @@
 [package]
-name = "calc_rule"
+name = "expr_engine"
 version = "0.1.0"
 edition.workspace = true
 authors.workspace = true
