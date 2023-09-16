@@ -1,4 +1,2 @@
 mod simple_test;
-fn main(){
-
-}
+fn main() {}

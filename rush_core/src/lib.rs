@@ -1,7 +1,7 @@
 mod define;
-mod rush;
 mod function;
+mod rush;
 
 pub use define::*;
-pub use rush::*;
 pub use function::*;
+pub use rush::*;

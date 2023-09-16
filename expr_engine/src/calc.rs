@@ -1,15 +1,14 @@
-use std::fmt::{Debug};
+use crate::{CalcBuilder, NotFoundFieldError};
+use anyhow::anyhow;
+use rush_core::FunctionSet;
+use serde_json::{Number, Value};
+use std::fmt::Debug;
 use std::str::FromStr;
 use std::sync::Arc;
-use anyhow::anyhow;
-use serde_json::{Number, Value};
 use wd_tools::{PFErr, PFOk};
-use rush_core::FunctionSet;
-use crate::{CalcBuilder, NotFoundFieldError};
 
-
-#[derive(Debug,Eq, PartialEq,Clone)]
-pub enum Opt{
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub enum Opt {
     //最低
     ADD, // +
     SUB, // -
@@ -34,7 +33,6 @@ pub enum Opt{
     AT, // &&
     OT, // ||
 }
-
 
 impl AsRef<str> for Opt {
     fn as_ref(&self) -> &str {
@@ -63,8 +61,8 @@ impl AsRef<str> for Opt {
     }
 }
 
-#[derive(Debug, PartialEq,Clone)]
-pub enum Calc{
+#[derive(Debug, PartialEq, Clone)]
+pub enum Calc {
     NULL,
     Field(String),
     String(String),
@@ -72,9 +70,9 @@ pub enum Calc{
     Float(f64),
     Bool(bool),
     Array(Vec<Calc>),
-    Function(String,Vec<Calc>),
+    Function(String, Vec<Calc>),
 
-    Operator(Opt,Vec<Calc>)
+    Operator(Opt, Vec<Calc>),
 }
 
 macro_rules! operator_number_float {
@@ -149,11 +147,11 @@ macro_rules! operator_number_bit_option {
 }
 
 impl Calc {
-    pub fn field(&self,mut input: &Value)->anyhow::Result<Value>{
+    pub fn field(&self, mut input: &Value) -> anyhow::Result<Value> {
         match self {
             Calc::Field(field) => {
-                let ks:Vec<&str> = field.split('.').collect();
-                for i in ks{
+                let ks: Vec<&str> = field.split('.').collect();
+                for i in ks {
                     match input {
                         Value::Object(obj) => {
                             match obj.get(i) {
@@ -166,37 +164,31 @@ impl Calc {
                                 }
                             }
                         }
-                        _=>{
-                            return anyhow!("not found object at field[{field}]").err()
-                        }
+                        _ => return anyhow!("not found object at field[{field}]").err(),
                     }
                 }
                 input.clone().ok()
             }
-            _=>{
-                anyhow!("calc[{:?}],is not field",self).err()
-            }
+            _ => anyhow!("calc[{:?}],is not field", self).err(),
         }
     }
-    pub fn function(&self,fs: &Arc<dyn FunctionSet>,input: &Value)->anyhow::Result<Value>{
+    pub fn function(&self, fs: &Arc<dyn FunctionSet>, input: &Value) -> anyhow::Result<Value> {
         return match self {
             Calc::Function(name, args) => {
                 let mut val_args = vec![];
                 for i in args {
                     val_args.push(i.value(fs, input)?);
                 }
-                if let Some(function) = fs.get(name){
-                    function.call(fs.clone(),val_args)
-                }else{
-                    anyhow!("function[{}] not found",name).err()
+                if let Some(function) = fs.get(name) {
+                    function.call(fs.clone(), val_args)
+                } else {
+                    anyhow!("function[{}] not found", name).err()
                 }
             }
-            _ => {
-                anyhow!("type[{:?}] is not function",self).err()
-            }
-        }
+            _ => anyhow!("type[{:?}] is not function", self).err(),
+        };
     }
-    pub fn number(&self,fs: &Arc<dyn FunctionSet>,input: &Value)->anyhow::Result<Number>{
+    pub fn number(&self, fs: &Arc<dyn FunctionSet>, input: &Value) -> anyhow::Result<Number> {
         let n = match self {
             Calc::NULL => Number::from(0i64),
             Calc::Field(_) => {
@@ -204,111 +196,102 @@ impl Calc {
                 match val {
                     Value::Null => Number::from(0i64),
                     Value::Number(n) => n,
-                    _=>{
-                        return anyhow!("type[{val}] can not to number").err()
-                    }
+                    _ => return anyhow!("type[{val}] can not to number").err(),
                 }
             }
             Calc::Number(n) => Number::from(*n),
             Calc::Float(f) => {
-                if let Some(s) = Number::from_f64(*f){
+                if let Some(s) = Number::from_f64(*f) {
                     s
-                }else{
-                    return anyhow!("want get f64,found NAN").err()
+                } else {
+                    return anyhow!("want get f64,found NAN").err();
                 }
             }
-            Calc::Function(_,_)=>{
+            Calc::Function(_, _) => {
                 let val = self.function(fs, input)?;
                 match val {
                     Value::Null => Number::from(0i64),
                     Value::Number(n) => n,
-                    _=>{
-                        return anyhow!("type[{val}] can not to number").err()
-                    }
+                    _ => return anyhow!("type[{val}] can not to number").err(),
                 }
             }
-            _ => {
-                return anyhow!("type[{:?}] can not to number",self).err()
-            }
+            _ => return anyhow!("type[{:?}] can not to number", self).err(),
         };
-        return n.ok()
+        return n.ok();
     }
-    pub fn value(&self,fs: &Arc<dyn FunctionSet>,input: &Value)->anyhow::Result<Value>{
-        let b= match self {
+    pub fn value(&self, fs: &Arc<dyn FunctionSet>, input: &Value) -> anyhow::Result<Value> {
+        let b = match self {
             Calc::NULL => Value::Null,
             Calc::Field(_) => self.field(input)?,
             Calc::String(s) => Value::String(s.clone()),
             Calc::Number(n) => Value::Number(Number::from(*n)),
-            Calc::Float(f) =>{
-                match Number::from_f64(*f){
-                    None => {
-                        return anyhow!("need f64, found a NAN").err()
-                    }
-                    Some(n) => Value::Number(n),
-                }
+            Calc::Float(f) => match Number::from_f64(*f) {
+                None => return anyhow!("need f64, found a NAN").err(),
+                Some(n) => Value::Number(n),
             },
             Calc::Bool(b) => Value::Bool(*b),
             Calc::Array(a) => {
                 let mut array = vec![];
-                for i in a{
-                    array.push(i.value(fs,input)?);
+                for i in a {
+                    array.push(i.value(fs, input)?);
                 }
                 Value::Array(array)
             }
-            Calc::Function(_,_) => {
-                self.function(fs,input)?
-            }
-            Calc::Operator(opt,args) => {
-                Self::operator(opt,args,fs,input)?
-            }
+            Calc::Function(_, _) => self.function(fs, input)?,
+            Calc::Operator(opt, args) => Self::operator(opt, args, fs, input)?,
         };
         Ok(b)
     }
-    pub fn operator(opt:&Opt,args:&Vec<Calc>,fs: &Arc<dyn FunctionSet>,input: &Value)->anyhow::Result<Value>{
+    pub fn operator(
+        opt: &Opt,
+        args: &Vec<Calc>,
+        fs: &Arc<dyn FunctionSet>,
+        input: &Value,
+    ) -> anyhow::Result<Value> {
         if args.len() == 0 {
-            return anyhow!("operator[{:?}] args count must have one",opt).err()
+            return anyhow!("operator[{:?}] args count must have one", opt).err();
         }
         if args.len() == 1 {
             match opt {
                 Opt::SUB => {
-                    let n = args[0].number(fs,input)?;
+                    let n = args[0].number(fs, input)?;
                     if let Some(i) = n.as_i64() {
-                        return Value::Number(Number::from(-i)).ok()
+                        return Value::Number(Number::from(-i)).ok();
                     } else if let Some(i) = n.as_u64() {
-                        return Value::Number(Number::from(-(i as i64))).ok()
+                        return Value::Number(Number::from(-(i as i64))).ok();
                     }
                     if let Some(i) = n.as_f64() {
                         if let Some(s) = Number::from_f64(-i) {
-                            return Value::Number(s).ok()
+                            return Value::Number(s).ok();
                         }
                     }
-                    return anyhow!("operator '-' parse number[{n}] failed").err()
+                    return anyhow!("operator '-' parse number[{n}] failed").err();
                 }
-                Opt::NOT=>{
+                Opt::NOT => {
                     let b = args[0].bool(fs, input)?;
-                    return Value::Bool(b).ok()
+                    return Value::Bool(b).ok();
                 }
-                Opt::REV=>{
-                    let n = args[0].number(fs,input)?;
-                    if let Some(i) = n.as_i64(){
-                        return Value::Number(Number::from(!i)).ok()
+                Opt::REV => {
+                    let n = args[0].number(fs, input)?;
+                    if let Some(i) = n.as_i64() {
+                        return Value::Number(Number::from(!i)).ok();
                     }
-                    return anyhow!("operator '~' only support i64 type").err()
+                    return anyhow!("operator '~' only support i64 type").err();
                 }
                 _ => {}
             }
         }
         if args.len() != 2 {
-            return anyhow!("operator[{:?}] args count must hava two",opt).err()
+            return anyhow!("operator[{:?}] args count must hava two", opt).err();
         }
         // let arg1 = args[0].value(fs,input)?;
         // let arg2 = args[1].value(fs,input)?;
 
         match opt {
             Opt::NOT | Opt::XOR => {
-                return anyhow!("operator[{:?}] args count must is one",opt).err()
+                return anyhow!("operator[{:?}] args count must is one", opt).err()
             }
-            _=>{}
+            _ => {}
         }
 
         operator_number_float!(opt,args,fs,input,
@@ -331,35 +314,33 @@ impl Calc {
             Opt::LT=> <,
             Opt::LE=> <=);
 
-
-
         if let Opt::AT = opt {
-            let b1 = args[0].bool(fs,input)?;
-            let b2 = args[1].bool(fs,input)?;
-            return Value::Bool(b1 && b2).ok()
+            let b1 = args[0].bool(fs, input)?;
+            let b2 = args[1].bool(fs, input)?;
+            return Value::Bool(b1 && b2).ok();
         }
-        if let Opt::OT = opt{
-            if args[0].bool(fs,input)? {
+        if let Opt::OT = opt {
+            if args[0].bool(fs, input)? {
                 return Value::Bool(true).ok();
             }
-            if args[1].bool(fs,input)? {
+            if args[1].bool(fs, input)? {
                 return Value::Bool(true).ok();
             }
             return Value::Bool(false).ok();
         }
 
         let v1 = args[0].value(fs, input)?;
-        let v2 = args[1].value(fs,input)?;
+        let v2 = args[1].value(fs, input)?;
         if let Opt::EQ = opt {
             return Value::Bool(v1 == v2).ok();
-        }else if let Opt::NQ = opt{
+        } else if let Opt::NQ = opt {
             return Value::Bool(v1 != v2).ok();
         }
 
-        return anyhow!("unknown operator[{:?}]",opt).err()
+        return anyhow!("unknown operator[{:?}]", opt).err();
     }
 
-    pub fn bool(&self,fs: &Arc<dyn FunctionSet>, input: &Value)->anyhow::Result<bool>{
+    pub fn bool(&self, fs: &Arc<dyn FunctionSet>, input: &Value) -> anyhow::Result<bool> {
         let b = match self {
             Calc::NULL => false,
             Calc::Field(_) => {
@@ -367,7 +348,7 @@ impl Calc {
                 match val {
                     Value::Null => false,
                     Value::Bool(b) => b,
-                    _ => true
+                    _ => true,
                 }
             }
             Calc::String(s) => !s.is_empty(),
@@ -380,35 +361,34 @@ impl Calc {
                 match val {
                     Value::Null => false,
                     Value::Bool(b) => b,
-                    _ => true
+                    _ => true,
                 }
             }
             Calc::Operator(opt, args) => {
-                let val = Self::operator(opt, args,fs,input)?;
+                let val = Self::operator(opt, args, fs, input)?;
                 match val {
                     Value::Null => false,
                     Value::Bool(b) => b,
-                    _ => true
+                    _ => true,
                 }
             }
         };
         Ok(b)
     }
-    
 }
 
 impl ToString for Calc {
     fn to_string(&self) -> String {
         match self {
             Calc::NULL => "null".into(),
-            Calc::Field(s)=> s.clone(),
-            Calc::String(s) => format!("\"{}\"",s),
+            Calc::Field(s) => s.clone(),
+            Calc::String(s) => format!("\"{}\"", s),
             Calc::Number(n) => n.to_string(),
-            Calc::Float(f) => format!("{:.2}",f),
+            Calc::Float(f) => format!("{:.2}", f),
             Calc::Bool(b) => b.to_string(),
-            Calc::Array(list)=>{
-                let mut array:String = "[".into();
-                for (i,e) in list.iter().enumerate(){
+            Calc::Array(list) => {
+                let mut array: String = "[".into();
+                for (i, e) in list.iter().enumerate() {
                     if i != 0 {
                         array.push_str(",");
                     }
@@ -417,10 +397,10 @@ impl ToString for Calc {
                 array.push_str("]");
                 array
             }
-            Calc::Function(func,args) => {
+            Calc::Function(func, args) => {
                 let mut func = func.clone();
                 func.push_str("(");
-                for (i,arg) in args.iter().enumerate(){
+                for (i, arg) in args.iter().enumerate() {
                     if i != 0 {
                         func.push_str(",")
                     }
@@ -431,11 +411,16 @@ impl ToString for Calc {
             }
             Calc::Operator(opt, arg) => {
                 if arg.len() == 1 {
-                format!("({} {})",opt.as_ref(),arg[0].to_string())
-                }else if arg.len() == 2{
-                format!("({} {} {})",arg[0].to_string(),opt.as_ref(),arg[1].to_string())
-                }else{
-                    panic!("Calc.to_string length[{}]",arg.len());
+                    format!("({} {})", opt.as_ref(), arg[0].to_string())
+                } else if arg.len() == 2 {
+                    format!(
+                        "({} {} {})",
+                        arg[0].to_string(),
+                        opt.as_ref(),
+                        arg[1].to_string()
+                    )
+                } else {
+                    panic!("Calc.to_string length[{}]", arg.len());
                 }
             }
         }
@@ -449,22 +434,22 @@ impl FromStr for Calc {
         CalcBuilder::new(s).build()
     }
 }
-impl<S:AsRef<str>> From<S> for Calc{
+impl<S: AsRef<str>> From<S> for Calc {
     fn from(value: S) -> Self {
         Calc::from_str(value.as_ref()).unwrap()
     }
 }
 
-impl rush_core::CalcNode for Calc{
+impl rush_core::CalcNode for Calc {
     fn when(&self, fs: Arc<dyn FunctionSet>, input: &Value) -> anyhow::Result<bool> {
-        match self.bool(&fs,input) {
+        match self.bool(&fs, input) {
             Ok(o) => o.ok(),
             Err(e) => {
                 // not found field = false
                 // no return error
                 if let Some(_) = e.downcast_ref::<NotFoundFieldError>() {
                     Ok(false)
-                }else{
+                } else {
                     e.err()
                 }
             }
@@ -473,32 +458,38 @@ impl rush_core::CalcNode for Calc{
 }
 
 #[cfg(test)]
-mod test{
-    use std::fmt::{Debug};
-    use std::sync::Arc;
-    use serde::Serialize;
-    use rush_core::{CalcNode, Function, FunctionSet};
-    use crate::Opt;
+mod test {
     use super::Calc;
+    use crate::Opt;
+    use rush_core::{CalcNode, Function, FunctionSet};
+    use serde::Serialize;
+    use std::fmt::Debug;
+    use std::sync::Arc;
 
     //cargo test --color=always --lib calc_impl::test::test_calc_show -- --exact unstable-options --nocapture
     #[test]
-    fn test_calc_show(){
-        let calc = Calc::Operator(Opt::GE, vec![Calc::Number(32), Calc::Function("str_len".into(), vec![Calc::String("hello world".into())])]);
-        println!("result ===> {}",calc.to_string());
+    fn test_calc_show() {
+        let calc = Calc::Operator(
+            Opt::GE,
+            vec![
+                Calc::Number(32),
+                Calc::Function("str_len".into(), vec![Calc::String("hello world".into())]),
+            ],
+        );
+        println!("result ===> {}", calc.to_string());
     }
 
     //cargo test --color=always --lib calc::test::test_calc_parse -- --exact unstable-options --nocapture
     #[test]
-    fn test_calc_parse(){
-        let calc:Calc = "a > b || c < d".parse().unwrap();
-        println!("---> {}",calc.to_string());
+    fn test_calc_parse() {
+        let calc: Calc = "a > b || c < d".parse().unwrap();
+        println!("---> {}", calc.to_string());
     }
 
     #[derive(Serialize)]
-    struct People{
-        pub age:isize,
-        pub native_place:String,
+    struct People {
+        pub age: isize,
+        pub native_place: String,
     }
     #[derive(Debug)]
     struct FunctionSetImpl;
@@ -510,15 +501,17 @@ mod test{
     }
     //cargo test --color=always --lib calc::test::test_calc_simple --no-fail-fast -- --exact unstable-options --nocapture
     #[test]
-    fn test_calc_simple(){
+    fn test_calc_simple() {
         let expr = "age > 18 || native_place == \"中国\"";
-        let calc:Calc = expr.parse().unwrap();
-        println!("calc--->{}",calc.to_string());
-        let people = People{age:19,native_place:"japan".into()};
+        let calc: Calc = expr.parse().unwrap();
+        println!("calc--->{}", calc.to_string());
+        let people = People {
+            age: 19,
+            native_place: "japan".into(),
+        };
         let input = serde_json::to_value(people).unwrap();
-        let fs = Arc::new(FunctionSetImpl{});
-        let result = calc.when(fs,&input).expect("when error===>");
+        let fs = Arc::new(FunctionSetImpl {});
+        let result = calc.when(fs, &input).expect("when error===>");
         println!("result ---> {result}");
     }
-
 }

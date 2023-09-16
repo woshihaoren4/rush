@@ -1,12 +1,12 @@
-use std::sync::Arc;
+use crate::{Function, FunctionSet};
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::sync::Arc;
 use wd_tools::{PFErr, PFOk};
-use crate::{Function, FunctionSet};
 
-pub trait FromValue: Sized{
-    fn from(val:Value)->anyhow::Result<Self> ;
+pub trait FromValue: Sized {
+    fn from(val: Value) -> anyhow::Result<Self>;
 }
 // impl FromValue for String{
 //     fn from(value: Value)->anyhow::Result<Self>{
@@ -82,37 +82,41 @@ pub trait FromValue: Sized{
 //     }
 // }
 impl<T> FromValue for T
-where T: for<'a> Deserialize<'a>
+where
+    T: for<'a> Deserialize<'a>,
 {
     fn from(val: Value) -> anyhow::Result<Self> {
-        let t:T = serde_json::from_value(val)?;t.ok()
+        let t: T = serde_json::from_value(val)?;
+        t.ok()
     }
 }
 
-
-pub trait HostFunction<A,O>{
-    fn call(&self,args:Vec<Value>)->anyhow::Result<Value>;
+pub trait HostFunction<A, O> {
+    fn call(&self, args: Vec<Value>) -> anyhow::Result<Value>;
 }
-pub struct FunctionImpl<A,O>{
-    inner:Box<dyn HostFunction<A,O>>
+pub struct FunctionImpl<A, O> {
+    inner: Box<dyn HostFunction<A, O>>,
 }
 
-impl<A,O> FunctionImpl<A,O>{
-    pub fn new<F:HostFunction<A,O>+ 'static>(f:F)->Self{
+impl<A, O> FunctionImpl<A, O> {
+    pub fn new<F: HostFunction<A, O> + 'static>(f: F) -> Self {
         let inner = Box::new(f);
-        Self{inner}
+        Self { inner }
     }
 }
 
-impl<A,O> Function for FunctionImpl<A,O>
-where O:Serialize
+impl<A, O> Function for FunctionImpl<A, O>
+where
+    O: Serialize,
 {
     fn call(&self, _fs: Arc<dyn FunctionSet>, args: Vec<Value>) -> anyhow::Result<Value> {
         self.inner.call(args)
     }
 }
-impl<O,F> HostFunction<(),O> for F
-where O:Serialize,F:Fn()->anyhow::Result<O> + 'static
+impl<O, F> HostFunction<(), O> for F
+where
+    O: Serialize,
+    F: Fn() -> anyhow::Result<O> + 'static,
 {
     fn call(&self, _args: Vec<Value>) -> anyhow::Result<Value> {
         let out = self()?;
@@ -137,49 +141,54 @@ where $($t:FromValue,)*
 }
     };
 }
-function_impl_template!(1,A1);
-function_impl_template!(2,A1,A2);
-function_impl_template!(3,A1,A2,A3);
-function_impl_template!(4,A1,A2,A3,A4);
-function_impl_template!(5,A1,A2,A3,A4,A5);
-function_impl_template!(6,A1,A2,A3,A4,A5,A6);
-function_impl_template!(7,A1,A2,A3,A4,A5,A6,A7);
-function_impl_template!(8,A1,A2,A3,A4,A5,A6,A7,A8);
-function_impl_template!(9,A1,A2,A3,A4,A5,A6,A7,A8,A9);
-function_impl_template!(10,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10);
-function_impl_template!(11,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11);
-function_impl_template!(12,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12);
-function_impl_template!(13,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13);
-function_impl_template!(14,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14);
-function_impl_template!(15,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15);
-function_impl_template!(16,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,A16);
+function_impl_template!(1, A1);
+function_impl_template!(2, A1, A2);
+function_impl_template!(3, A1, A2, A3);
+function_impl_template!(4, A1, A2, A3, A4);
+function_impl_template!(5, A1, A2, A3, A4, A5);
+function_impl_template!(6, A1, A2, A3, A4, A5, A6);
+function_impl_template!(7, A1, A2, A3, A4, A5, A6, A7);
+function_impl_template!(8, A1, A2, A3, A4, A5, A6, A7, A8);
+function_impl_template!(9, A1, A2, A3, A4, A5, A6, A7, A8, A9);
+function_impl_template!(10, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10);
+function_impl_template!(11, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11);
+function_impl_template!(12, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12);
+function_impl_template!(13, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13);
+function_impl_template!(14, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14);
+function_impl_template!(15, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15);
+function_impl_template!(16, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16);
 
 #[cfg(test)]
-mod test{
-    use std::sync::Arc;
+mod test {
+    use crate::{Function, FunctionImpl, FunctionSet, HostFunction};
     use serde::Serialize;
     use serde_json::Value;
-    use crate::{Function, FunctionImpl, FunctionSet, HostFunction};
+    use std::sync::Arc;
     #[derive(Debug)]
     struct FSet;
-    impl FunctionSet for FSet{
+    impl FunctionSet for FSet {
         fn get(&self, _name: &str) -> Option<Arc<dyn Function>> {
             None
         }
     }
 
-    fn call<A,O:Serialize,F:HostFunction<A,O> + 'static>(f:F){
-        let f = FunctionImpl{inner:Box::new(f)};
-        let b :Box<dyn Function> = Box::new(f);
-        let _ = b.call(Arc::new(FSet{}),vec![Value::String("hello".into()),Value::String("world".into())]).unwrap();
+    fn call<A, O: Serialize, F: HostFunction<A, O> + 'static>(f: F) {
+        let f = FunctionImpl { inner: Box::new(f) };
+        let b: Box<dyn Function> = Box::new(f);
+        let _ = b
+            .call(
+                Arc::new(FSet {}),
+                vec![Value::String("hello".into()), Value::String("world".into())],
+            )
+            .unwrap();
         // let _ =  f.call(Arc::new(FSet{}),vec![Value::String("hello".into()),Value::String("world".into())]);
     }
 
     //cargo test --color=always --lib function::test::test_fn --no-fail-fast -- --exact unstable-options --show-output --nocapture
     #[test]
-    fn test_fn(){
-        call(|a:String|{
-            println!("--->{}",a);
+    fn test_fn() {
+        call(|a: String| {
+            println!("--->{}", a);
             Ok("hello")
         });
     }
