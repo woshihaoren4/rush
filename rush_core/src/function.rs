@@ -91,7 +91,7 @@ where
     }
 }
 
-pub trait HostFunction<A, O> {
+pub trait HostFunction<A, O>  {
     fn call(&self, args: Vec<Value>) -> anyhow::Result<Value>;
 }
 pub struct FunctionImpl<A, O> {
@@ -128,7 +128,7 @@ macro_rules! function_impl_template {
     ($n:tt,$($t:tt),*) => {
         impl<$($t,)* O,F> HostFunction<($($t,)*),O> for F
 where $($t:FromValue,)*
-        O:Serialize,F:Fn($($t,)*)->anyhow::Result<O> + 'static
+        O:Serialize,F:Fn($($t,)*)->anyhow::Result<O> + Send + Sync + 'static
 {
     fn call(&self, mut args: Vec<Value>) -> anyhow::Result<Value> {
         if args.len() < $n {

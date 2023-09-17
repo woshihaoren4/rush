@@ -14,9 +14,10 @@ expr_engine = {path = "../expr_engine" }
 rush_core = {path = "../rush_core"}
 serde_json.workspace = true
 serde.workspace = true
+tokio.workspace = true
 
 [dev-dependencies]
-criterion = { version = "0.5", features = ["html_reports"] }
+criterion = { version = "0.5", features = ["html_reports","async_tokio"] }
 
 [[bench]]
 name = "expression_parse"
@@ -24,6 +25,10 @@ harness = false
 
 [[bench]]
 name = "assign_simple_parse"
+harness = false
+
+[[bench]]
+name = "async_rush"
 harness = false
 
 ## https://bheisler.github.io/criterion.rs/book/faq.html#cargo-bench-gives-unrecognized-option-errors-for-valid-command-line-options

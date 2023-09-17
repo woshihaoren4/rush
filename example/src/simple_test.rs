@@ -14,7 +14,7 @@ mod test {
     fn test_null_success() {
         let ee = ExprEngine::from([NULL_EXPR_RULE]);
         let rh = Rush::from(ee);
-        let val: Value = rh.input(()).unwrap();
+        let val: Value = rh.flow(()).unwrap();
         assert_eq!(
             val,
             Value::Object(Map::new()),
@@ -33,7 +33,7 @@ mod test {
     fn test_null_failed() {
         let ee = ExprEngine::from([NULL_WHEN_ONE_EXEC]);
         let rh = Rush::from(ee);
-        let val: Value = rh.input(()).unwrap();
+        let val: Value = rh.flow(()).unwrap();
         assert_eq!(
             val,
             Value::Object(Map::new()),
@@ -90,7 +90,7 @@ mod test {
             MANY_RULE_FOUR,
         ]));
         let res: Tag = rh
-            .input(r#"{"country":"美国","age":17}"#.parse::<Value>().unwrap())
+            .flow(r#"{"country":"美国","age":17}"#.parse::<Value>().unwrap())
             .unwrap();
         assert_eq!(
             res.tag.as_str(),
@@ -98,7 +98,7 @@ mod test {
             r#"case : {{"country":"美国","age":17}} failed"#
         );
         let res: Tag = rh
-            .input(r#"{"country":"美国","age":19}"#.parse::<Value>().unwrap())
+            .flow(r#"{"country":"美国","age":19}"#.parse::<Value>().unwrap())
             .unwrap();
         assert_eq!(
             res.tag.as_str(),
@@ -106,7 +106,7 @@ mod test {
             r#"case : {{"country":"美国","age":19}} failed"#
         );
         let res: Tag = rh
-            .input(r#"{"country":"中国","age":17}"#.parse::<Value>().unwrap())
+            .flow(r#"{"country":"中国","age":17}"#.parse::<Value>().unwrap())
             .unwrap();
         assert_eq!(
             res.tag.as_str(),
@@ -114,7 +114,7 @@ mod test {
             r#"case : {{"country":"中国","age":17}} failed"#
         );
         let res: Tag = rh
-            .input(r#"{"country":"中国","age":19}"#.parse::<Value>().unwrap())
+            .flow(r#"{"country":"中国","age":19}"#.parse::<Value>().unwrap())
             .unwrap();
         assert_eq!(
             res.tag.as_str(),
@@ -122,11 +122,31 @@ mod test {
             r#"case : {{"country":"中国","age":19}} failed"#
         );
 
-        let res: Tag = rh.input(r#"{"age":17}"#.parse::<Value>().unwrap()).unwrap();
+        let res: Tag = rh.flow(r#"{"age":17}"#.parse::<Value>().unwrap()).unwrap();
         assert_eq!(res.tag.as_str(), "", r#"case: country is null failed"#);
         let res: Tag = rh
-            .input(r#"{"country":"美国"}"#.parse::<Value>().unwrap())
+            .flow(r#"{"country":"美国"}"#.parse::<Value>().unwrap())
             .unwrap();
         assert_eq!(res.tag.as_str(), "", r#"case: age is null failed"#);
     }
+
+    // #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+    // async fn test_multi_many_test(){
+    //     let rh = Rush::from(Into::<ExprEngine>::into([
+    //         MANY_RULE_ONE,
+    //         MANY_RULE_TWO,
+    //         MANY_RULE_THREE,
+    //         MANY_RULE_FOUR,
+    //     ]));
+    //     let res: Tag = rh
+    //         .multi_flow(r#"{"country":"美国","age":17}"#.parse::<Value>().unwrap()).await
+    //         .unwrap();
+    //
+    //
+    //     assert_eq!(
+    //         res.tag.as_str(),
+    //         "美国的年轻人",
+    //         r#"case : {{"country":"美国","age":17}} failed"#
+    //     );
+    // }
 }

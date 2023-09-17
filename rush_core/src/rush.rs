@@ -2,17 +2,17 @@ use crate::{CalcNode, Exec, Filter, Function, FunctionImpl, FunctionSet, HostFun
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
-use std::fmt::{Debug, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 use std::sync::Arc;
 use wd_tools::sync::Acl;
 
-pub struct Rush<C, R> {
-    functions: Acl<HashMap<String, Arc<dyn Function>>>,
-    nodes: HashMap<String, Vec<C>>,
-    exec: HashMap<String, R>,
+pub struct Rush{
+    pub(crate) functions: Acl<HashMap<String, Arc<dyn Function>>>,
+    pub(crate) nodes: HashMap<String,Vec<Box<dyn CalcNode>>>,
+    pub(crate) exec: HashMap<String, Box<dyn Exec>>,
 }
 
-impl<C, R> Debug for Rush<C, R> {
+impl Debug for Rush {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut fs = vec![];
         for (i, _) in self.functions.share().iter() {
@@ -33,8 +33,13 @@ impl<C, R> Debug for Rush<C, R> {
         )
     }
 }
+impl Display for Rush{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        Debug::fmt(self,f)
+    }
+}
 
-impl<C: CalcNode, E: Exec> Rush<C, E> {
+impl Rush{
     pub fn new() -> Self {
         let functions = Acl::new(HashMap::new());
         let nodes = HashMap::new();
@@ -45,10 +50,14 @@ impl<C: CalcNode, E: Exec> Rush<C, E> {
             exec: rules,
         }
     }
-    pub fn register_rule<T: Into<String>>(mut self, name: T, nodes: Vec<C>, exec: E) -> Self {
+    pub fn register_rule<C: CalcNode+'static, E: Exec + 'static,T: Into<String>>(mut self, name: T, nodes: Vec<C>, exec: E) -> Self {
         let name = name.into();
-        self.nodes.insert(name.clone(), nodes);
-        self.exec.insert(name, exec);
+        let mut ns:Vec<Box<dyn CalcNode>> = vec![];
+        for i in nodes {
+            ns.push(Box::new(i));
+        }
+        self.nodes.insert(name.clone(), ns);
+        self.exec.insert(name, Box::new(exec));
         self
     }
     pub fn delete_rule<T: AsRef<str>>(&mut self, name: T) {
@@ -80,10 +89,19 @@ impl<C: CalcNode, E: Exec> Rush<C, E> {
         self
     }
 
+    pub fn execute(&self,obj: &Value,list:Vec<String>)-> anyhow::Result<Value>{
+        let mut output = Value::Object(Map::new());
+        for name in list.iter() {
+            if let Some(r) = self.exec.get(name) {
+                r.execute(self.functions.share(), obj, &mut output)?;
+            }
+        }
+        Ok(output)
+    }
     /// input_value
     /// 1. 计算匹配到的规则
     /// 2. 找出规则进行结果生成
-    fn input_value(&self, obj: Value) -> anyhow::Result<Value> {
+    fn flow_value(&self, obj: Value) -> anyhow::Result<Value> {
         let mut rules = vec![];
         'lp: for (k, v) in self.nodes.iter() {
             for i in v.iter() {
@@ -93,20 +111,14 @@ impl<C: CalcNode, E: Exec> Rush<C, E> {
             }
             rules.push(k.to_string());
         }
-        let mut output = Value::Object(Map::new());
-        for name in rules.iter() {
-            if let Some(r) = self.exec.get(name) {
-                r.execute(self.functions.share(), &obj, &mut output)?;
-            }
-        }
-        Ok(output)
+        self.execute(&obj,rules)
     }
 }
 
-impl<C, E, I: IntoIterator<Item = (String, Vec<C>, E)>> From<I> for Rush<C, E>
+impl<C, E, I: IntoIterator<Item = (String, Vec<C>, E)>> From<I> for Rush
 where
-    C: CalcNode,
-    E: Exec,
+    C: CalcNode+ 'static,
+    E: Exec+ 'static,
 {
     fn from(value: I) -> Self {
         let mut rush = Rush::new();
@@ -123,10 +135,10 @@ impl FunctionSet for HashMap<String, Arc<dyn Function>> {
     }
 }
 
-impl<C: CalcNode, R: Exec> Filter for Rush<C, R> {
-    fn input<Obj: Serialize, Out: Deserialize<'static>>(&self, obj: Obj) -> anyhow::Result<Out> {
+impl Filter for Rush {
+    fn flow<Obj: Serialize, Out: Deserialize<'static>>(&self, obj: Obj) -> anyhow::Result<Out> {
         let value = serde_json::to_value(obj)?;
-        let result = self.input_value(value)?;
+        let result = self.flow_value(value)?;
         let out = Out::deserialize(result)?;
         Ok(out)
     }
@@ -166,9 +178,9 @@ mod test {
     //cargo test --color=always --lib rush::test::test_simple --no-fail-fast -- --exact unstable-options --show-output
     #[test]
     fn test_simple() {
-        let mr = Rush::<CalcNodeImpl, RuleImpl>::new();
+        let mr = Rush::new();
         let result: ObjTest = mr
-            .input(ObjTest {
+            .flow(ObjTest {
                 name: "hello world".into(),
             })
             .expect("input failed");
