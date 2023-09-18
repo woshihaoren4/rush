@@ -6,9 +6,9 @@ use std::fmt::{Debug, Display, Formatter};
 use std::sync::Arc;
 use wd_tools::sync::Acl;
 
-pub struct Rush{
+pub struct Rush {
     pub(crate) functions: Acl<HashMap<String, Arc<dyn Function>>>,
-    pub(crate) nodes: HashMap<String,Vec<Box<dyn CalcNode>>>,
+    pub(crate) nodes: HashMap<String, Vec<Box<dyn CalcNode>>>,
     pub(crate) exec: HashMap<String, Box<dyn Exec>>,
 }
 
@@ -33,13 +33,13 @@ impl Debug for Rush {
         )
     }
 }
-impl Display for Rush{
+impl Display for Rush {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        Debug::fmt(self,f)
+        Debug::fmt(self, f)
     }
 }
 
-impl Rush{
+impl Rush {
     pub fn new() -> Self {
         let functions = Acl::new(HashMap::new());
         let nodes = HashMap::new();
@@ -50,9 +50,18 @@ impl Rush{
             exec: rules,
         }
     }
-    pub fn register_rule<C: CalcNode+Send+Sync+'static, E: Exec+Send+Sync + 'static,T: Into<String>>(mut self, name: T, nodes: Vec<C>, exec: E) -> Self {
+    pub fn register_rule<
+        C: CalcNode + Send + Sync + 'static,
+        E: Exec + Send + Sync + 'static,
+        T: Into<String>,
+    >(
+        mut self,
+        name: T,
+        nodes: Vec<C>,
+        exec: E,
+    ) -> Self {
         let name = name.into();
-        let mut ns:Vec<Box<dyn CalcNode>> = vec![];
+        let mut ns: Vec<Box<dyn CalcNode>> = vec![];
         for i in nodes {
             ns.push(Box::new(i));
         }
@@ -89,7 +98,7 @@ impl Rush{
         self
     }
 
-    pub fn execute(&self,obj: &Value,list:Vec<String>)-> anyhow::Result<Value>{
+    pub fn execute(&self, obj: &Value, list: Vec<String>) -> anyhow::Result<Value> {
         let mut output = Value::Object(Map::new());
         for name in list.iter() {
             if let Some(r) = self.exec.get(name) {
@@ -111,14 +120,14 @@ impl Rush{
             }
             rules.push(k.to_string());
         }
-        self.execute(&obj,rules)
+        self.execute(&obj, rules)
     }
 }
 
 impl<C, E, I: IntoIterator<Item = (String, Vec<C>, E)>> From<I> for Rush
 where
-    C: CalcNode+ 'static,
-    E: Exec+ 'static,
+    C: CalcNode + 'static,
+    E: Exec + 'static,
 {
     fn from(value: I) -> Self {
         let mut rush = Rush::new();

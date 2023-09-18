@@ -37,10 +37,10 @@ impl Assign {
                 }
                 if let Some(s) = map.get_mut(e) {
                     s
-                }else{
+                } else {
                     panic!("Out of the question to here");
                 }
-            }else{
+            } else {
                 return anyhow!("want insert at,but the path is not obj").err();
             }
         }

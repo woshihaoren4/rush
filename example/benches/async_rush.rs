@@ -1,8 +1,8 @@
-use criterion::{criterion_group, criterion_main, Criterion, BenchmarkId};
-use serde::Deserialize;
-use serde_json::Value;
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use expr_engine::ExprEngine;
 use rush_core::{Filter, MultiRush, Rush};
+use serde::Deserialize;
+use serde_json::Value;
 
 pub const MANY_RULE_ONE: &str = "
     rule MANY_RULE_ONE
@@ -43,9 +43,10 @@ struct Tag {
     #[serde(default = "Default::default")]
     tag: String,
 }
-async fn multi_flow(rh:&MultiRush){
+async fn multi_flow(rh: &MultiRush) {
     let res: Tag = rh
-        .multi_flow(r#"{"country":"美国","age":17}"#.parse::<Value>().unwrap()).await
+        .multi_flow(r#"{"country":"美国","age":17}"#.parse::<Value>().unwrap())
+        .await
         .unwrap();
     assert_eq!(
         res.tag.as_str(),
@@ -54,8 +55,7 @@ async fn multi_flow(rh:&MultiRush){
     );
 }
 
-
-fn sync_flow(rh:&Rush){
+fn sync_flow(rh: &Rush) {
     let res: Tag = rh
         .flow(r#"{"country":"美国","age":17}"#.parse::<Value>().unwrap())
         .unwrap();
@@ -73,11 +73,16 @@ fn criterion_benchmark(c: &mut Criterion) {
         MANY_RULE_THREE,
         MANY_RULE_FOUR,
     ]));
-    let mrh:MultiRush = rh.into();
+    let mrh: MultiRush = rh.into();
 
-    c.bench_with_input(BenchmarkId::new("multi_flow", "multi_flow"), &mrh, |b, s| {
-        b.to_async(tokio::runtime::Runtime::new().unwrap()).iter(||multi_flow(s));
-    });
+    c.bench_with_input(
+        BenchmarkId::new("multi_flow", "multi_flow"),
+        &mrh,
+        |b, s| {
+            b.to_async(tokio::runtime::Runtime::new().unwrap())
+                .iter(|| multi_flow(s));
+        },
+    );
 
     let rh = Rush::from(Into::<ExprEngine>::into([
         MANY_RULE_ONE,
@@ -87,9 +92,8 @@ fn criterion_benchmark(c: &mut Criterion) {
     ]));
 
     c.bench_with_input(BenchmarkId::new("sync_flow", "sync_flow"), &rh, |b, s| {
-        b.iter(||sync_flow(s));
+        b.iter(|| sync_flow(s));
     });
-
 }
 
 criterion_group!(benches, criterion_benchmark);

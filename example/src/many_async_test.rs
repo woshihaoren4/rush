@@ -131,7 +131,7 @@ mod test {
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
-    async fn test_multi_many_test(){
+    async fn test_multi_many_test() {
         let rh = Rush::from(Into::<ExprEngine>::into([
             MANY_RULE_ONE,
             MANY_RULE_TWO,
@@ -139,7 +139,8 @@ mod test {
             MANY_RULE_FOUR,
         ]));
         let res: Tag = Into::<MultiRush>::into(rh)
-            .multi_flow(r#"{"country":"美国","age":17}"#.parse::<Value>().unwrap()).await
+            .multi_flow(r#"{"country":"美国","age":17}"#.parse::<Value>().unwrap())
+            .await
             .unwrap();
 
         assert_eq!(

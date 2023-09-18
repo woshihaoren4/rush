@@ -215,8 +215,8 @@ impl Calc {
                     _ => return anyhow!("type[{val}] can not to number").err(),
                 }
             }
-            Calc::Operator(opt,args) => {
-                let val = Self::operator(opt,args,fs,input)?;
+            Calc::Operator(opt, args) => {
+                let val = Self::operator(opt, args, fs, input)?;
                 match val {
                     Value::Null => Number::from(0i64),
                     Value::Number(n) => n,
