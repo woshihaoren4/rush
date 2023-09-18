@@ -8,11 +8,11 @@ pub trait Filter {
     fn flow<Obj: Serialize, Out: Deserialize<'static>>(&self, obj: Obj) -> anyhow::Result<Out>;
 }
 // 计算节点
-pub trait CalcNode {
+pub trait CalcNode : Send + Sync {
     fn when(&self, fs: Arc<dyn FunctionSet>, input: &Value) -> anyhow::Result<bool>;
 }
 // 运算规则
-pub trait Exec {
+pub trait Exec : Send + Sync {
     fn execute(
         &self,
         fs: Arc<dyn FunctionSet>,
@@ -21,11 +21,11 @@ pub trait Exec {
     ) -> anyhow::Result<()>;
 }
 // 函数
-pub trait Function  {
+pub trait Function : Send + Sync {
     fn call(&self, fs: Arc<dyn FunctionSet>, args: Vec<Value>) -> anyhow::Result<Value>;
 }
 // 函数集
-pub trait FunctionSet {
+pub trait FunctionSet : Send + Sync {
     fn get(&self, name: &str) -> Option<Arc<dyn Function>>;
 }
 

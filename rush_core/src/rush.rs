@@ -50,7 +50,7 @@ impl Rush{
             exec: rules,
         }
     }
-    pub fn register_rule<C: CalcNode+'static, E: Exec + 'static,T: Into<String>>(mut self, name: T, nodes: Vec<C>, exec: E) -> Self {
+    pub fn register_rule<C: CalcNode+Send+Sync+'static, E: Exec+Send+Sync + 'static,T: Into<String>>(mut self, name: T, nodes: Vec<C>, exec: E) -> Self {
         let name = name.into();
         let mut ns:Vec<Box<dyn CalcNode>> = vec![];
         for i in nodes {

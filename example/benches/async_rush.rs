@@ -2,7 +2,7 @@ use criterion::{criterion_group, criterion_main, Criterion, BenchmarkId};
 use serde::Deserialize;
 use serde_json::Value;
 use expr_engine::ExprEngine;
-use rush_core::{Filter, Rush};
+use rush_core::{Filter, MultiRush, Rush};
 
 pub const MANY_RULE_ONE: &str = "
     rule MANY_RULE_ONE
@@ -43,16 +43,16 @@ struct Tag {
     #[serde(default = "Default::default")]
     tag: String,
 }
-// async fn multi_flow(rh:&Rush){
-//     let res: Tag = rh
-//         .multi_flow(r#"{"country":"美国","age":17}"#.parse::<Value>().unwrap()).await
-//         .unwrap();
-//     assert_eq!(
-//         res.tag.as_str(),
-//         "美国的年轻人",
-//         r#"case : {{"country":"美国","age":17}} failed"#
-//     );
-// }
+async fn multi_flow(rh:&MultiRush){
+    let res: Tag = rh
+        .multi_flow(r#"{"country":"美国","age":17}"#.parse::<Value>().unwrap()).await
+        .unwrap();
+    assert_eq!(
+        res.tag.as_str(),
+        "美国的年轻人",
+        r#"case : {{"country":"美国","age":17}} failed"#
+    );
+}
 
 
 fn sync_flow(rh:&Rush){
@@ -67,16 +67,17 @@ fn sync_flow(rh:&Rush){
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-    // let rh = Rush::from(Into::<ExprEngine>::into([
-    //     MANY_RULE_ONE,
-    //     MANY_RULE_TWO,
-    //     MANY_RULE_THREE,
-    //     MANY_RULE_FOUR,
-    // ]));
-    //
-    // c.bench_with_input(BenchmarkId::new("multi_flow", "multi_flow"), &rh, |b, s| {
-    //     b.to_async(tokio::runtime::Runtime::new().unwrap()).iter(||multi_flow(s));
-    // });
+    let rh = Rush::from(Into::<ExprEngine>::into([
+        MANY_RULE_ONE,
+        MANY_RULE_TWO,
+        MANY_RULE_THREE,
+        MANY_RULE_FOUR,
+    ]));
+    let mrh:MultiRush = rh.into();
+
+    c.bench_with_input(BenchmarkId::new("multi_flow", "multi_flow"), &mrh, |b, s| {
+        b.to_async(tokio::runtime::Runtime::new().unwrap()).iter(||multi_flow(s));
+    });
 
     let rh = Rush::from(Into::<ExprEngine>::into([
         MANY_RULE_ONE,

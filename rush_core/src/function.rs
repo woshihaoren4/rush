@@ -91,7 +91,7 @@ where
     }
 }
 
-pub trait HostFunction<A, O>  {
+pub trait HostFunction<A, O> : Send+Sync  {
     fn call(&self, args: Vec<Value>) -> anyhow::Result<Value>;
 }
 pub struct FunctionImpl<A, O> {
@@ -99,7 +99,7 @@ pub struct FunctionImpl<A, O> {
 }
 
 impl<A, O> FunctionImpl<A, O> {
-    pub fn new<F: HostFunction<A, O> + 'static>(f: F) -> Self {
+    pub fn new<F: HostFunction<A, O>+Send+Sync  + 'static>(f: F) -> Self {
         let inner = Box::new(f);
         Self { inner }
     }
@@ -116,7 +116,7 @@ where
 impl<O, F> HostFunction<(), O> for F
 where
     O: Serialize,
-    F: Fn() -> anyhow::Result<O> + 'static,
+    F: Fn() -> anyhow::Result<O> + Send+Sync  + 'static,
 {
     fn call(&self, _args: Vec<Value>) -> anyhow::Result<Value> {
         let out = self()?;
