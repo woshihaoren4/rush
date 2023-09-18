@@ -25,8 +25,9 @@ impl Assign {
     fn insert_value(k: &str, input: Value, mut out: &mut Value) -> anyhow::Result<()> {
         let ks: Vec<_> = k.split(".").collect();
         let last = ks.len() - 1;
+
         for (i, e) in ks.into_iter().enumerate() {
-            if let Value::Object(map) = out {
+            out = if let Value::Object(map) = out {
                 if i == last {
                     map.insert(e.to_string(), input);
                     return Ok(());
@@ -35,10 +36,13 @@ impl Assign {
                     map.insert(e.to_string(), Value::Object(Map::new()));
                 }
                 if let Some(s) = map.get_mut(e) {
-                    out = s;
+                    s
+                }else{
+                    panic!("Out of the question to here");
                 }
+            }else{
+                return anyhow!("want insert at,but the path is not obj").err();
             }
-            return anyhow!("want insert at:{},but the path is not obj:{}", k, input).err();
         }
         return Ok(());
     }

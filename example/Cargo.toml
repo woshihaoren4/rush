@@ -15,6 +15,7 @@ rush_core = {path = "../rush_core"}
 serde_json.workspace = true
 serde.workspace = true
 tokio.workspace = true
+anyhow.workspace = true
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports","async_tokio"] }
@@ -29,6 +30,10 @@ harness = false
 
 [[bench]]
 name = "async_rush"
+harness = false
+
+[[bench]]
+name = "function_benchmark"
 harness = false
 
 ## https://bheisler.github.io/criterion.rs/book/faq.html#cargo-bench-gives-unrecognized-option-errors-for-valid-command-line-options

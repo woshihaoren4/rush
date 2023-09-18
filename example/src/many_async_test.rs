@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod test {
     use expr_engine::ExprEngine;
-    use rush_core::{Filter, Rush};
+    use rush_core::{Filter, MultiRush, Rush};
     use serde::Deserialize;
     use serde_json::{Map, Value};
 
@@ -130,23 +130,22 @@ mod test {
         assert_eq!(res.tag.as_str(), "", r#"case: age is null failed"#);
     }
 
-    // #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
-    // async fn test_multi_many_test(){
-    //     let rh = Rush::from(Into::<ExprEngine>::into([
-    //         MANY_RULE_ONE,
-    //         MANY_RULE_TWO,
-    //         MANY_RULE_THREE,
-    //         MANY_RULE_FOUR,
-    //     ]));
-    //     let res: Tag = rh
-    //         .multi_flow(r#"{"country":"美国","age":17}"#.parse::<Value>().unwrap()).await
-    //         .unwrap();
-    //
-    //
-    //     assert_eq!(
-    //         res.tag.as_str(),
-    //         "美国的年轻人",
-    //         r#"case : {{"country":"美国","age":17}} failed"#
-    //     );
-    // }
+    #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+    async fn test_multi_many_test(){
+        let rh = Rush::from(Into::<ExprEngine>::into([
+            MANY_RULE_ONE,
+            MANY_RULE_TWO,
+            MANY_RULE_THREE,
+            MANY_RULE_FOUR,
+        ]));
+        let res: Tag = Into::<MultiRush>::into(rh)
+            .multi_flow(r#"{"country":"美国","age":17}"#.parse::<Value>().unwrap()).await
+            .unwrap();
+
+        assert_eq!(
+            res.tag.as_str(),
+            "美国的年轻人",
+            r#"case : {{"country":"美国","age":17}} failed"#
+        );
+    }
 }
