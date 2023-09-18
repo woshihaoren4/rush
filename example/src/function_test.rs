@@ -48,9 +48,10 @@ mod test{
     pub struct Resp{
         #[serde(default = "Default::default")]
         message :String,
+        #[serde(default = "Default::default")]
         revenue :Revenue,
     }
-    #[derive(Deserialize,Serialize)]
+    #[derive(Deserialize,Serialize,Default)]
     pub struct Revenue{
         avg : i64,
     }
@@ -62,12 +63,23 @@ mod test{
 
         let rh = rh.raw_register_function("str_splice",StrSplice(' '))
         .register_function("str_rev",str_rev)
-            //可以用闭包的方式添加
+         //可以用闭包的方式添加
         .register_function("abs",|i:i64| Ok(i.abs()));
 
         let resp:Resp = rh.flow(r#"{"country":"大拿加","city":"多伦多","revenue":{"low":-10,"high":1002}}"#.parse::<Value>().unwrap()).unwrap();
-
         assert_eq!(resp.message.as_str(),"加拿大 多伦多 贫富差距大");
         assert_eq!(resp.revenue.avg,506);
+
+        let resp:Resp = rh.flow(r#"{"country":"加拿大","city":"多伦多","revenue":{"low":-10,"high":1002}}"#.parse::<Value>().unwrap()).unwrap();
+        assert_eq!(resp.message.as_str(),"");
+        assert_eq!(resp.revenue.avg,0);
+
+        let resp:Resp = rh.flow(r#"{"country":"大拿加","city":"温哥华","revenue":{"low":-10,"high":1002}}"#.parse::<Value>().unwrap()).unwrap();
+        assert_eq!(resp.message.as_str(),"");
+        assert_eq!(resp.revenue.avg,0);
+
+        let resp:Resp = rh.flow(r#"{"country":"加拿大","city":"多伦多","revenue":{"low":-100,"high":1002}}"#.parse::<Value>().unwrap()).unwrap();
+        assert_eq!(resp.message.as_str(),"");
+        assert_eq!(resp.revenue.avg,0);
     }
 }
