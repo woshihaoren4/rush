@@ -17,4 +17,4 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Run tests
-      run: cd ./example;cargo test --verbose
+      run: cargo test --bin example --verbose
