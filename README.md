@@ -30,7 +30,7 @@ Here, regular expressions are generated directly. You can actually implement som
 
 [More examples](https://github.com/woshihaoren4/rush/tree/main/example/src)
 
-## Keywords and 
+## Keywords
 
 The direct parsing rules are as follows:
 ```rust
@@ -60,6 +60,17 @@ then
 - Prefixes: ! - ~
 - Null coalescence: null
 - Function: function_name(args)result
+
+## Function
+
+You can add functions just like normal rust functions
+
+```rust
+    let rh = rh
+        .register_function("abs", |i: i64| Ok(i.abs()));
+```
+
+[More function impl](https://github.com/woshihaoren4/rush/blob/main/example/src/function_test.rs)
 
 ## Abstraction and Structure
 
