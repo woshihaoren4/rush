@@ -17,4 +17,4 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Run tests
-      run: cargo test --workspace --bin example --verbose
+      run: cp cargo.toml Cargo.toml;cargo test --workspace --bin example --verbose
