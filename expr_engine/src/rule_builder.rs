@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use wd_tools::PFErr;
 
 const RULE_FORMAT: &str = "\n\
+The keyword cannot be repeated: when,then
 rule [name] [description] [engine/default:expr] [...]
 when
     [condition 1];
@@ -11,10 +12,10 @@ when
     ...
     [condition n];
 then
-    [execute 1]
-    [execute 2]
+    [key1 = execute 1];
+    [key2 = execute 2];
     ...
-    [execute n]
+    [keyn = execute n];
 ";
 const EXPR_ENGINE: &str = "expr";
 const RULE_TAG: &str = "rule";
