@@ -60,6 +60,7 @@ then
 - Prefixes: ! - ~
 - Null coalescence: null
 - Function: function_name(args)result
+- Input field by digits, letters and underscores，if field not found then condition is failed
 
 ## Function
 
