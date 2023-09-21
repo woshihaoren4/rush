@@ -78,6 +78,8 @@ mod test {
         sub([1,2,3,4],[1]) && !sub([1,2,3,4],[5]);
         1 ^ 2 == 3;
         ~ 1 == -2;
+        true;
+        true || false;
     then
         message = 'success'
     ";
