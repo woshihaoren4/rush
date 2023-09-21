@@ -277,7 +277,7 @@ impl Calc {
                 }
                 Opt::NOT => {
                     let b = args[0].bool(fs, input)?;
-                    return Value::Bool(b).ok();
+                    return Value::Bool(!b).ok();
                 }
                 Opt::REV => {
                     let n = args[0].number(fs, input)?;
@@ -471,6 +471,7 @@ mod test {
     use crate::Opt;
     use rush_core::{CalcNode, Function, FunctionSet};
     use serde::Serialize;
+    use serde_json::Value;
     use std::fmt::Debug;
     use std::sync::Arc;
 
@@ -521,5 +522,14 @@ mod test {
         let fs = Arc::new(FunctionSetImpl {});
         let result = calc.when(fs, &input).expect("when error===>");
         println!("result ---> {result}");
+    }
+
+    #[test]
+    fn test_calc_bit_operation() {
+        let expr = " 3 & 2";
+        let calc = Calc::from(expr);
+        let fs: Arc<dyn FunctionSet> = Arc::new(FunctionSetImpl {});
+        let result = calc.value(&fs, &Value::Null).unwrap();
+        println!("---> {:?}", result);
     }
 }

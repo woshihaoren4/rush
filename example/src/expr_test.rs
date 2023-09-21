@@ -70,6 +70,12 @@ mod test {
         payment.discount_amount / 2 == 100;
         payment.total_amount == product_total_amount(products);
         payment.discount_amount == coupon_discount_amount(coupons);
+        2>>1 == 1;
+        1<<2 == 4;
+        1 | 2 == 3;
+        3 & 2 == 2;
+        contain([1,2,3,4],status) && !contain([5],status);
+        sub([1,2,3,4],[1]) && !sub([1,2,3,4],[5]);
     then
         message = 'success'
     ";

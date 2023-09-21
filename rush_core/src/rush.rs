@@ -1,3 +1,4 @@
+use crate::std_tool::{ArrayContain, ArraySub, Env};
 use crate::{CalcNode, Exec, Filter, Function, FunctionImpl, FunctionSet, HostFunction};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -44,11 +45,14 @@ impl Rush {
         let functions = Acl::new(HashMap::new());
         let nodes = HashMap::new();
         let rules = HashMap::new();
-        Self {
+        let rh = Self {
             functions,
             nodes,
             exec: rules,
-        }
+        };
+        rh.raw_register_function("contain", ArrayContain {})
+            .raw_register_function("sub", ArraySub {})
+            .raw_register_function("env", Env::default())
     }
     pub fn register_rule<
         C: CalcNode + Send + Sync + 'static,
