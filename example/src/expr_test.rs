@@ -76,6 +76,8 @@ mod test {
         3 & 2 == 2;
         contain([1,2,3,4],status) && !contain([5],status);
         sub([1,2,3,4],[1]) && !sub([1,2,3,4],[5]);
+        1 ^ 2 == 3;
+        ~ 1 == -2;
     then
         message = 'success'
     ";

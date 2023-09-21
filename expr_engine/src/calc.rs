@@ -296,7 +296,7 @@ impl Calc {
         // let arg2 = args[1].value(fs,input)?;
 
         match opt {
-            Opt::NOT | Opt::XOR => {
+            Opt::NOT | Opt::REV => {
                 return anyhow!("operator[{:?}] args count must is one", opt).err()
             }
             _ => {}
@@ -526,7 +526,7 @@ mod test {
 
     #[test]
     fn test_calc_bit_operation() {
-        let expr = " 3 & 2";
+        let expr = "1 ^ 2";
         let calc = Calc::from(expr);
         let fs: Arc<dyn FunctionSet> = Arc::new(FunctionSetImpl {});
         let result = calc.value(&fs, &Value::Null).unwrap();
