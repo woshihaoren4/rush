@@ -57,6 +57,8 @@ then
 - Boolean constants: true false
 - Parenthesis to control order of evaluation ( )
 - Arrays [anything separated by , within parenthesis: [1, 2, 'foo']]
+  - contain function example: `contain([1,2.3,'hello'],1)`
+  - sub function： Find whether there are subsets of the two arrays
 - Prefixes: ! - ~
 - Null coalescence: null
 - Function: function_name(args)result
