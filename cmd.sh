@@ -8,6 +8,9 @@ bench)
   cd ./example || echo "\n not found path:./example" && exit 1
   cargo bench -- --verbose
   ;;
+test)
+  cargo test --bin example --verbose
+  ;;
 *)
   echo "please input a cmd (bench)"
   ;;
