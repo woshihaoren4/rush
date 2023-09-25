@@ -70,6 +70,7 @@ mod test {
         envs.insert("OFFLINE_CHANNEL".into(), "offline".into());
 
         let rt = LuaRuntimeFactory::new()
+            // .load(LUA_RULE_SCRIPT, envs)..unwrap(); //同步try_load
             .build(LUA_RULE_SCRIPT, envs)
             .await
             .unwrap();

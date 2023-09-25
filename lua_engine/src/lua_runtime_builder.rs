@@ -8,6 +8,8 @@ use wd_tools::PFErr;
 
 #[async_trait::async_trait]
 pub trait AsyncCustomScriptLoad: Send + Sync {
+    //在同步中尝试解析
+    fn try_load(&self, _rule_name: String, _script: String) -> Option<String>{None}
     async fn load(&self, rule_name: String, script: String) -> anyhow::Result<String>;
 }
 
@@ -52,6 +54,22 @@ impl LuaRuntimeFactory {
         }
         let body = body.trim_start_matches(|c| " \n\r\t".contains(c));
         Ok((list[2].to_string(), body.into()))
+    }
+    pub fn load<S: AsRef<str>>(
+        &self,
+        script: S,
+        envs: HashMap<String, String>,
+    ) -> anyhow::Result<LuaRuntime> {
+        let (rule, buf) = Self::check_engine(script.as_ref())?;
+        for (k, v) in self.loader.iter() {
+            if buf.starts_with(*k) {
+                let script = if let Some(s) = v.try_load(rule, buf){s}else {
+                  return anyhow!("can load script, please use async build").err()
+                };
+                return LuaRuntime::new(script, envs);
+            }
+        }
+        anyhow!("not found eligible loader").err()
     }
     pub async fn build<S: AsRef<str>>(
         &self,
