@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod test {
     use expr_engine::{Assign, CalcBuilder};
-    use rush_core::{CalcNode, Exec, Filter, FunctionSet, Rush};
+    use rush_core::{CalcNode, Exec, FunctionSet, RuleFlow, Rush};
     use serde_json::Value;
     use std::collections::HashMap;
     use std::sync::Arc;

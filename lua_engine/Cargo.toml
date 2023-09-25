@@ -10,3 +10,18 @@ description.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+mlua = { version = "0.9.1", features = ["lua54", "vendored","serialize","async"] }
+serde.workspace = true
+serde_json.workspace = true
+wd_tools.workspace = true
+anyhow.workspace = true
+async-channel.workspace = true
+rush_core = {path = "../rush_core",optional = true}
+async-trait.workspace = true
+tokio = {version = "1.32.0",features = ["full"]}
+#tokio = {version = "1.32.0",features = ["sync"]}
+
+
+[features]
+default = ["rule-flow"]
+rule-flow = ["rush_core"]

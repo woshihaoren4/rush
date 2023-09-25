@@ -1,12 +1,25 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::future::Future;
 use std::sync::Arc;
 
 // 核心抽象，所有规则算法都可以看作是一个过滤器，给如一个输入，给出一个输出
-pub trait Filter {
-    fn flow<Obj: Serialize, Out: Deserialize<'static>>(&self, obj: Obj) -> anyhow::Result<Out>;
+pub trait RuleFlow {
+    fn version(&self) -> i32 {
+        1
+    }
+    fn flow<Obj: Serialize, Out: for<'a> Deserialize<'a>>(&self, obj: Obj) -> anyhow::Result<Out>;
 }
+
+#[async_trait::async_trait]
+pub trait AsyncRuleFlow: RuleFlow + Sync + Send {
+    async fn async_flow<Obj: Serialize + Send, Out: for<'a> Deserialize<'a>>(
+        &self,
+        obj: Obj,
+    ) -> anyhow::Result<Out> {
+        self.flow(obj)
+    }
+}
+
 // 计算节点
 pub trait CalcNode: Send + Sync {
     fn when(&self, fs: Arc<dyn FunctionSet>, input: &Value) -> anyhow::Result<bool>;
@@ -30,12 +43,9 @@ pub trait FunctionSet: Send + Sync {
 }
 
 #[async_trait::async_trait]
-pub trait TaskPool {
-    type Out;
-    async fn push<F: Future<Output = Self::Out> + Send + 'static>(
-        &self,
-        task: F,
-    ) -> anyhow::Result<Self::Out> {
-        Ok(task.await)
+pub trait RuleEngineDiscovery<F> {
+    fn version(&self) -> i32 {
+        1
     }
+    async fn upgrade(&self) -> F;
 }

@@ -12,6 +12,7 @@ description.workspace = true
 [dependencies]
 expr_engine = {path = "../expr_engine" }
 rush_core = {path = "../rush_core"}
+lua_engine = {path = "../lua_engine",features = ["rule-flow"]}
 serde_json.workspace = true
 serde.workspace = true
 tokio.workspace = true
