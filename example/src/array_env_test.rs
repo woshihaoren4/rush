@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod test {
     use expr_engine::ExprEngine;
-    use rush_core::{Filter, Rush};
+    use rush_core::{RuleFlow, Rush};
     use serde_json::Value;
     use std::collections::HashMap;
 

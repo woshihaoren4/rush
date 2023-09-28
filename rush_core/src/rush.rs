@@ -1,5 +1,7 @@
 use crate::std_tool::{ArrayContain, ArraySub, Env};
-use crate::{CalcNode, Exec, Filter, Function, FunctionImpl, FunctionSet, HostFunction};
+use crate::{
+    AsyncRuleFlow, CalcNode, Exec, Function, FunctionImpl, FunctionSet, HostFunction, RuleFlow,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
@@ -148,7 +150,7 @@ impl FunctionSet for HashMap<String, Arc<dyn Function>> {
     }
 }
 
-impl Filter for Rush {
+impl RuleFlow for Rush {
     fn flow<Obj: Serialize, Out: Deserialize<'static>>(&self, obj: Obj) -> anyhow::Result<Out> {
         let value = serde_json::to_value(obj)?;
         let result = self.flow_value(value)?;
@@ -156,11 +158,12 @@ impl Filter for Rush {
         Ok(out)
     }
 }
+impl AsyncRuleFlow for Rush {}
 
 #[cfg(test)]
 mod test {
     use crate::rush::Rush;
-    use crate::{CalcNode, Exec, Filter, FunctionSet};
+    use crate::{CalcNode, Exec, FunctionSet, RuleFlow};
     use serde::{Deserialize, Serialize};
     use serde_json::Value;
     use std::sync::Arc;
