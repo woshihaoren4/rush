@@ -35,10 +35,13 @@ impl AsyncCustomScriptLoad for AsyncCustomScriptLoadFile {
             return None
         }
         let path = script.split_off(LUA_FILE_TAG.len());
-        let path = path.trim_start_matches(|x| " \t\r\n".contains(x));
+        let path = path.trim_matches(|x| " \t\r\n".contains(x));
         let data = match std::fs::read_to_string(path) {
             Ok(s) => s,
-            Err(_) => return None,
+            Err(e) =>{
+                println!("AsyncCustomScriptLoadFile open file failed; {}",e.to_string());
+                return None
+            },
         };
         data.some()
     }

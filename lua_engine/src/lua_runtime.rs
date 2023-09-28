@@ -115,23 +115,25 @@ impl LuaRuntime {
             }
         });
 
-        match receiver_init.try_recv() {
-            Ok(Ok(o)) => {
-                if o.code != 0 {
-                    return anyhow!("init lua runtime failed:{}", o.message).err();
+        loop {
+            match receiver_init.try_recv() {
+                Ok(Ok(o)) => {
+                    if o.code != 0 {
+                        return anyhow!("init lua runtime failed:{}", o.message).err();
+                    }
+                    break
+                }
+                Ok(Err(e)) => {
+                    return Err(e);
+                }
+                Err(error::TryRecvError::Closed) => {
+                    return anyhow!("init lua runtime unknown error").err();
+                }
+                Err(error::TryRecvError::Empty) => {
+                    std::thread::sleep(Duration::from_millis(1));
                 }
             }
-            Ok(Err(e)) => {
-                return Err(e);
-            }
-            Err(error::TryRecvError::Closed) => {
-                return anyhow!("init lua runtime unknown error").err();
-            }
-            Err(error::TryRecvError::Empty) => {
-                std::thread::sleep(Duration::from_millis(1));
-            }
         }
-
         Ok(LuaRuntime { sender })
     }
 

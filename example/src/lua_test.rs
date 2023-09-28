@@ -4,6 +4,7 @@ mod test {
     use rush_core::{AsyncRuleFlow, RuleFlow};
     use serde_json::Value;
     use std::collections::HashMap;
+    use serde::{Deserialize};
 
     const LUA_SCRIPT: &'static str = r#"
     function handle(req)
@@ -80,5 +81,22 @@ mod test {
             .await
             .unwrap();
         assert_eq!(res.get("message").unwrap().as_str(), "线上渠道");
+    }
+
+    const LUA_RULE_FILE: &'static str = r#"
+    rule LUA_RULE_FILE _ lua
+    lua_file: lua_script/handle.lua
+    "#;
+
+    #[derive(Deserialize)]
+    struct Resp{
+        message:String
+    }
+
+    #[test]
+    fn test_lua_from_file(){
+        let rt = LuaRuntimeFactory::new().load(LUA_RULE_FILE, HashMap::new()).unwrap();
+        let resp : Resp = rt.flow(r#"{"hello":"world"}"#.parse::<Value>().unwrap()).unwrap();
+        assert_eq!(resp.message.as_str(),"success")
     }
 }
