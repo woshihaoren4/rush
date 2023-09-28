@@ -2,9 +2,9 @@
 mod test {
     use lua_engine::{LuaRuntime, LuaRuntimeFactory};
     use rush_core::{AsyncRuleFlow, RuleFlow};
+    use serde::Deserialize;
     use serde_json::Value;
     use std::collections::HashMap;
-    use serde::{Deserialize};
 
     const LUA_SCRIPT: &'static str = r#"
     function handle(req)
@@ -89,14 +89,18 @@ mod test {
     "#;
 
     #[derive(Deserialize)]
-    struct Resp{
-        message:String
+    struct Resp {
+        message: String,
     }
 
     #[test]
-    fn test_lua_from_file(){
-        let rt = LuaRuntimeFactory::new().load(LUA_RULE_FILE, HashMap::new()).unwrap();
-        let resp : Resp = rt.flow(r#"{"hello":"world"}"#.parse::<Value>().unwrap()).unwrap();
-        assert_eq!(resp.message.as_str(),"success")
+    fn test_lua_from_file() {
+        let rt = LuaRuntimeFactory::new()
+            .load(LUA_RULE_FILE, HashMap::new())
+            .unwrap();
+        let resp: Resp = rt
+            .flow(r#"{"hello":"world"}"#.parse::<Value>().unwrap())
+            .unwrap();
+        assert_eq!(resp.message.as_str(), "success")
     }
 }

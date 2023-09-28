@@ -37,6 +37,10 @@ harness = false
 name = "function_benchmark"
 harness = false
 
+[[bench]]
+name = "lua_script_bm"
+harness = false
+
 ## https://bheisler.github.io/criterion.rs/book/faq.html#cargo-bench-gives-unrecognized-option-errors-for-valid-command-line-options
 [[bin]]
 name = "example"

@@ -7,6 +7,7 @@ use std::time::Duration;
 use tokio::sync::oneshot::*;
 use wd_tools::{PFErr, PFOk};
 
+#[derive(Debug)]
 struct Task {
     input: serde_json::Value,
     sender: Sender<anyhow::Result<serde_json::Value>>,
@@ -22,8 +23,17 @@ pub struct InitResult {
     handle_function: String,
 }
 
+#[derive(Debug)]
 pub struct LuaRuntime {
     sender: async_channel::Sender<Task>,
+}
+
+impl Clone for LuaRuntime {
+    fn clone(&self) -> Self {
+        Self {
+            sender: self.sender.clone(),
+        }
+    }
 }
 
 impl LuaRuntime {
@@ -121,7 +131,7 @@ impl LuaRuntime {
                     if o.code != 0 {
                         return anyhow!("init lua runtime failed:{}", o.message).err();
                     }
-                    break
+                    break;
                 }
                 Ok(Err(e)) => {
                     return Err(e);
