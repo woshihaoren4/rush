@@ -1,4 +1,6 @@
 # Rush
+[中文文档](https://juejin.cn/column/7281080737491025955)
+
 Rush is a universal rules engine.
 
 Rush provides a general computational abstraction. There can be multiple implementations and any combination.
@@ -75,6 +77,32 @@ You can add functions just like normal rust functions
 
 [More function impl](https://github.com/woshihaoren4/rush/blob/main/example/src/function_test.rs)
 
+## Lua
+
+[More lua example](https://github.com/woshihaoren4/rush/blob/lua_engine/example/src/lua_test.rs)
+
+```rust
+    const LUA_RULE_SCRIPT: &'static str = r#"
+    rule LUA_RULE_SCRIPT _ lua
+    lua_script:
+    function handle(req)
+        local resp = {}
+
+        if req.source == ONLINE_CHANNEL then
+            resp.message = "线上渠道"
+        elseif req.source == OFFLINE_CHANNEL then
+            resp.message = "线下渠道"
+        else
+            resp.message = "未知渠道:"..req.source
+        end
+
+        return resp
+    end
+
+    return {handle_function="handle"}
+    "#;
+```
+
 ## Abstraction and Structure
 
 ![img.png](img.png)
@@ -96,6 +124,7 @@ single_parse         time:   [165.08 ns 174.83 ns 186.49 ns]
 simple_parse         time:   [2.6358 µs 2.6470 µs 2.6591 µs]
 full_parse           time:   [19.868 µs 20.089 µs 20.356 µs]
 have_function_rush   time:   [6.9074 µs 6.9507 µs 7.0011 µs]
+lua_async_flow       time:   [10.731 µs 10.847 µs 10.970 µs]
 ```
 
 ## Plan
