@@ -23,9 +23,10 @@ pub struct LuaRuntimeFactory {
 impl LuaRuntimeFactory {
     pub fn new() -> Self {
         let mut loader: HashMap<&'static str, Box<dyn AsyncCustomScriptLoad>> = HashMap::new();
-        loader.insert(LUA_SCRIPT_TAG, Box::new(AsyncCustomScriptLoadDefaultImpl));
-        loader.insert(LUA_FILE_TAG, Box::new(AsyncCustomScriptLoadFile));
-        Self { loader }
+        let mut lrf = Self { loader };
+        lrf.add_loader(LUA_SCRIPT_TAG,AsyncCustomScriptLoadDefaultImpl);
+        lrf.add_loader(LUA_FILE_TAG,AsyncCustomScriptLoadFile);
+        lrf
     }
     pub fn add_loader<Load: AsyncCustomScriptLoad + 'static>(
         &mut self,
