@@ -11,3 +11,9 @@ description.workspace = true
 
 [dependencies]
 wasmer = {version = "4.1.1"}
+anyhow.workspace = true
+wd_tools.workspace = true
+async-channel.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
