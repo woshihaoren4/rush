@@ -7,7 +7,7 @@ mod test {
 
     const WASM_RULE: &'static str = "
     rule WASM_RULE _ wasm
-    wasm_file: ../target/wasm32-unknown-unknown/release/wasm_example_one.wasm
+    wasm_file: wasm_example/wasm_example_one.wasm
     ";
 
     #[tokio::test]
