@@ -13,6 +13,7 @@ description.workspace = true
 expr_engine = {path = "../expr_engine" }
 rush_core = {path = "../rush_core"}
 lua_engine = {path = "../lua_engine",features = ["rule-flow"]}
+wasm_engine = {path = "../wasm_engine",features = ["rule-flow"]}
 serde_json.workspace = true
 serde.workspace = true
 tokio.workspace = true
@@ -39,6 +40,10 @@ harness = false
 
 [[bench]]
 name = "lua_script_bm"
+harness = false
+
+[[bench]]
+name = "wasm_bm"
 harness = false
 
 ## https://bheisler.github.io/criterion.rs/book/faq.html#cargo-bench-gives-unrecognized-option-errors-for-valid-command-line-options

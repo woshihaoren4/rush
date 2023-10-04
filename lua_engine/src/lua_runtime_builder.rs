@@ -22,7 +22,7 @@ pub struct LuaRuntimeFactory {
 
 impl LuaRuntimeFactory {
     pub fn new() -> Self {
-        let mut loader: HashMap<&'static str, Box<dyn AsyncCustomScriptLoad>> = HashMap::new();
+        let loader: HashMap<&'static str, Box<dyn AsyncCustomScriptLoad>> = HashMap::new();
         let mut lrf = Self { loader };
         lrf.add_loader(LUA_SCRIPT_TAG, AsyncCustomScriptLoadDefaultImpl);
         lrf.add_loader(LUA_FILE_TAG, AsyncCustomScriptLoadFile);

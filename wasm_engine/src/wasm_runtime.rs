@@ -133,8 +133,56 @@ impl WasmRuntime {
             Err(e) => anyhow!("wasm runtime error:{}", e).err(),
         };
     }
+
+    pub async fn async_call<S: Serialize, Out: for<'a> Deserialize<'a>>(
+        &self,
+        req: S,
+    ) -> anyhow::Result<Out> {
+        let input = serde_json::to_string(&req)?.into_bytes();
+        let (sender, receiver) = channel();
+        let task = Task { input, sender };
+        if let Err(e) = self.sender.send(task).await {
+            let err = e.to_string();
+            return anyhow!("lua runtime call failed: {}", err).err();
+        }
+        return match receiver.await {
+            Ok(o) => {
+                let s = o?;
+                let out = serde_json::from_str::<Out>(s.as_str())?;
+                Ok(out)
+            }
+            Err(e) => anyhow!("wasm runtime error:{}", e).err(),
+        };
+    }
+}
+impl Drop for WasmRuntime {
+    fn drop(&mut self) {
+        self.sender.close();
+    }
 }
 
+impl<T: Into<Vec<u8>>> From<T> for WasmRuntime {
+    fn from(value: T) -> Self {
+        WasmRuntime::new(value.into()).unwrap()
+    }
+}
+
+#[cfg(feature = "rule-flow")]
+impl rush_core::RuleFlow for WasmRuntime {
+    fn flow<Obj: Serialize, Out: for<'a> Deserialize<'a>>(&self, obj: Obj) -> anyhow::Result<Out> {
+        self.call(obj)
+    }
+}
+#[cfg(feature = "rule-flow")]
+#[async_trait::async_trait]
+impl rush_core::AsyncRuleFlow for WasmRuntime {
+    async fn async_flow<Obj: Serialize + Send, Out: for<'a> Deserialize<'a>>(
+        &self,
+        obj: Obj,
+    ) -> anyhow::Result<Out> {
+        self.async_call(obj).await
+    }
+}
 #[cfg(test)]
 mod test {
     use crate::WasmRuntime;
