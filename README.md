@@ -125,6 +125,7 @@ simple_parse         time:   [2.6358 µs 2.6470 µs 2.6591 µs]
 full_parse           time:   [19.868 µs 20.089 µs 20.356 µs]
 have_function_rush   time:   [6.9074 µs 6.9507 µs 7.0011 µs]
 lua_async_flow       time:   [10.731 µs 10.847 µs 10.970 µs]
+wasm_async_flow      time:   [8.7260 µs 8.8046 µs 8.8806 µs]
 ```
 
 ## Plan

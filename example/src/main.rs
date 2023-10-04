@@ -4,5 +4,6 @@ mod expr_test;
 mod function_test;
 mod lua_test;
 mod many_async_test;
+mod wasm_test;
 
 fn main() {}

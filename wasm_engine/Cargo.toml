@@ -1,5 +1,5 @@
 [package]
-name = "lua_engine"
+name = "wasm_engine"
 version = "0.1.0"
 edition.workspace = true
 authors.workspace = true
@@ -10,12 +10,12 @@ description.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-mlua = { version = "0.9.1", features = ["lua54", "vendored","serialize","async"] }
+wasmer = {version = "4.1.1"}
+anyhow.workspace = true
+wd_tools.workspace = true
+async-channel.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-wd_tools.workspace = true
-anyhow.workspace = true
-async-channel.workspace = true
 rush_core = {path = "../rush_core",optional = true}
 async-trait.workspace = true
 tokio = {version = "1.32.0",features = ["full"]}

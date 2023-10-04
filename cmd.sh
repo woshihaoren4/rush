@@ -11,6 +11,11 @@ bench)
 test)
   cargo test --bin example --verbose
   ;;
+build_wasm)
+  cd ./example/wasm_example
+  cargo build --target wasm32-unknown-unknown --release
+  ls ../../target/wasm32-unknown-unknown/release
+  ;;
 *)
   echo "please input a cmd (bench)"
   ;;
