@@ -17,7 +17,7 @@ wd_tools.workspace = true
 async-channel.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-rush_core = {path = "../rush_core",optional = true}
+rush_core = {version = "0.1",path = "../rush_core",optional = true}
 async-trait.workspace = true
 #tokio = {version = "1.32.0",features = ["full"]}
 tokio = {version = "1.32.0",features = ["sync"]}

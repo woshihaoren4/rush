@@ -15,4 +15,4 @@ wd_tools.workspace = true
 anyhow.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-rush_core = {path = "../rush_core"}
+rush_core = {version = "0.1", path = "../rush_core"}
