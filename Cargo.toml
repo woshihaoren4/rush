@@ -8,7 +8,7 @@ repository = "https://github.com/woshihaoren4/rush"
 keywords = ["rush"]
 description = "The rules engine is based on the rete algorithm"
 license = "MIT"
-
+readme = "README.md"
 
 [workspace.dependencies]
 wd_tools = {version = "0.8.12",features = ["point-free","sync"]}
