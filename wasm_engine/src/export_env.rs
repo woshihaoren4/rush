@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Error};
 use std::mem::MaybeUninit;
-use wasmer::{FunctionEnvMut, Memory, WasmPtr};
+use wasmer::{imports, Function, FunctionEnv, FunctionEnvMut, Imports, Memory, Store, WasmPtr};
 use wd_tools::PFErr;
 
 pub struct ExportEnv {
@@ -44,6 +44,14 @@ impl ExportEnv {
             };
         }
         0u32
+    }
+    pub fn generate_import(env: &FunctionEnv<Self>, store: &mut Store) -> Imports {
+        imports! {
+             "env"=>{
+                 "success" => Function::new_typed_with_env(store,env,ExportEnv::ret_success),
+                 "error" => Function::new_typed_with_env(store,env,ExportEnv::ret_error),
+             }
+        }
     }
     pub fn get_result(&mut self) -> anyhow::Result<String> {
         unsafe { std::ptr::replace(&mut self.result, anyhow!("not init").err()) }

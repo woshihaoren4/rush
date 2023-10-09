@@ -3,7 +3,7 @@ use anyhow::{anyhow, Error};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use tokio::sync::oneshot::{channel, error, Sender};
-use wasmer::{imports, Function, FunctionEnv, Instance, Module, Store, TypedFunction, WasmPtr};
+use wasmer::{FunctionEnv, Instance, Module, Store, TypedFunction, WasmPtr};
 use wd_tools::PFErr;
 
 #[derive(Debug)]
@@ -33,12 +33,7 @@ impl WasmRuntime {
 
             let env = ExportEnv::new();
             let env = FunctionEnv::new(&mut store, env);
-            let import_obj = imports! {
-            "env"=>{
-                "success" => Function::new_typed_with_env(&mut store,&env,ExportEnv::ret_success),
-                "error" => Function::new_typed_with_env(&mut store,&env,ExportEnv::ret_error),
-            }
-            };
+            let import_obj = ExportEnv::generate_import(&env, &mut store);
 
             let instance = match Instance::new(&mut store, &module, &import_obj) {
                 Ok(o) => o,
