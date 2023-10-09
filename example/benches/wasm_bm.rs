@@ -1,9 +1,8 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use rush_core::AsyncRuleFlow;
+use rush_wasm_engine::{WasmRuntime, WasmRuntimeFactory};
 use serde::Deserialize;
 use serde_json::Value;
-use std::collections::HashMap;
-use wasm_engine::{WasmRuntime, WasmRuntimeFactory};
 
 const WASM_RULE: &'static str = "
     rule WASM_RULE _ wasm

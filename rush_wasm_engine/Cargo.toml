@@ -1,5 +1,5 @@
 [package]
-name = "wasm_engine"
+name = "rush_wasm_engine"
 version = "0.1.0"
 edition.workspace = true
 authors.workspace = true
@@ -18,8 +18,8 @@ serde.workspace = true
 serde_json.workspace = true
 rush_core = {path = "../rush_core",optional = true}
 async-trait.workspace = true
-tokio = {version = "1.32.0",features = ["full"]}
-#tokio = {version = "1.32.0",features = ["sync"]}
+#tokio = {version = "1.32.0",features = ["full"]}
+tokio = {version = "1.32.0",features = ["sync"]}
 
 
 [features]

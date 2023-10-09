@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use expr_engine::Calc;
+use rush_expr_engine::Calc;
 
 fn single_parse() {
     let _calc: Calc = "1".parse().unwrap();

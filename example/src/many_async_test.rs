@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod test {
-    use expr_engine::ExprEngine;
     use rush_core::{MultiRush, RuleFlow, Rush};
+    use rush_expr_engine::ExprEngine;
     use serde::Deserialize;
     use serde_json::{Map, Value};
 

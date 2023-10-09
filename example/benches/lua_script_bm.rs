@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use lua_engine::{LuaRuntime, LuaRuntimeFactory};
 use rush_core::AsyncRuleFlow;
+use rush_lua_engine::{LuaRuntime, LuaRuntimeFactory};
 use serde::Deserialize;
 use serde_json::Value;
 use std::collections::HashMap;

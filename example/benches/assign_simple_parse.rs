@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use expr_engine::Assign;
+use rush_expr_engine::Assign;
 
 fn assign_simple_parse() {
     let _a = "msg='success'"

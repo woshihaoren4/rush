@@ -10,10 +10,10 @@ description.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-expr_engine = {path = "../expr_engine" }
+rush_expr_engine = {path = "../rush_expr_engine" }
 rush_core = {path = "../rush_core"}
-lua_engine = {path = "../lua_engine",features = ["rule-flow"]}
-wasm_engine = {path = "../wasm_engine",features = ["rule-flow"]}
+rush_lua_engine = {path = "../rush_lua_engine",features = ["rule-flow"]}
+rush_wasm_engine = {path = "../rush_wasm_engine",features = ["rule-flow"]}
 serde_json.workspace = true
 serde.workspace = true
 tokio.workspace = true

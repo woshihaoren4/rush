@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod test {
     use rush_core::AsyncRuleFlow;
+    use rush_wasm_engine::WasmRuntimeFactory;
     use serde_json::Value;
     use std::collections::HashMap;
-    use wasm_engine::WasmRuntimeFactory;
 
     const WASM_RULE: &'static str = "
     rule WASM_RULE _ wasm

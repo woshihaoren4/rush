@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use expr_engine::ExprEngine;
 use rush_core::{MultiRush, RuleFlow, Rush};
+use rush_expr_engine::ExprEngine;
 use serde::Deserialize;
 use serde_json::Value;
 
