@@ -174,7 +174,7 @@ wasm_async_flow      time:   [8.7260 µs 8.8046 µs 8.8806 µs]
 
 ## Plan
 
-Expressions are currently supported as cells of count. Future support for lua and wasm is also planned。
+The next step is to provide a run pool. Ability to execute more rules in parallel.
 
 ## License
 This project is licensed under the MIT general use license. You're free to integrate, fork, and play with this code as you feel fit without consulting the author, as long as you provide proper credit to the author in your works.
