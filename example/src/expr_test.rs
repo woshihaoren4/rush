@@ -92,4 +92,38 @@ mod test {
         let res: HashMap<String, String> = rh.flow(ORDER.parse::<Value>().unwrap()).unwrap();
         assert_eq!(res.get("message").unwrap().as_str(), "success");
     }
+
+    #[test]
+    fn test_rush() {
+        let rule_01: &str = r"
+        rule r1
+        when
+            value != '';
+        then
+            value = '1';
+        ";
+
+        let rule_02: &str = r"
+        rule r2
+        when
+            value != '';
+        then
+            value = '2';
+        ";
+
+        let rule_03: &str = r"
+        rule r3
+        when
+            value != '';
+        then
+            value = '3';
+        ";
+
+        let rh = Rush::from(Into::<ExprEngine>::into(vec![rule_01, rule_02, rule_03]));
+        let res: HashMap<String, String> = rh
+            .flow(r#"{"value":"abc"}"#.parse::<Value>().unwrap())
+            .unwrap();
+        assert_eq!(res.get("value").unwrap(),"3")
+
+    }
 }

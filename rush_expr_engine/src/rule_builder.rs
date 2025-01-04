@@ -1,6 +1,5 @@
 use crate::{Assign, Calc};
 use anyhow::anyhow;
-use std::collections::HashMap;
 use wd_tools::PFErr;
 
 const RULE_FORMAT: &str = "\n\
@@ -22,12 +21,12 @@ const RULE_TAG: &str = "rule";
 
 #[derive(Debug, Default)]
 pub struct ExprEngine {
-    rules: HashMap<String, (Vec<Calc>, Assign)>,
+    rules: Vec<(String, Vec<Calc>, Assign)>,
 }
 
 impl ExprEngine {
     pub fn insert_rule<S: Into<String>>(&mut self, name: S, calc: Vec<Calc>, assign: Assign) {
-        self.rules.insert(name.into(), (calc, assign));
+        self.rules.push((name.into(), calc, assign));
     }
     pub fn register_rule_by_expr<S: Into<String>, E: AsRef<str>>(
         &mut self,
@@ -100,7 +99,7 @@ impl IntoIterator for ExprEngine {
     fn into_iter(self) -> Self::IntoIter {
         self.rules
             .into_iter()
-            .map(|(n, (c, a))| (n, c, a))
+            .map(|(n, c, a)| (n, c, a))
             .collect::<Vec<_>>()
             .into_iter()
     }
@@ -139,7 +138,7 @@ mod test {
         ";
 
         let ee = ExprEngine::from([rule1, rule2]);
-        for (name, (cs, a)) in ee.rules {
+        for ((name, cs, a)) in ee.rules {
             println!("---> rule {}", name);
             println!("when");
             for i in cs {
