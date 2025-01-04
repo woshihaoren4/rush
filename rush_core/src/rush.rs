@@ -12,6 +12,7 @@ use wd_tools::sync::Acl;
 pub struct Rush {
     pub(crate) functions: Acl<HashMap<String, Arc<dyn Function>>>,
     pub(crate) nodes: HashMap<String, Vec<Box<dyn CalcNode>>>,
+    pub(crate) nodes_seq: Vec<String>,
     pub(crate) exec: HashMap<String, Box<dyn Exec>>,
 }
 
@@ -46,10 +47,12 @@ impl Rush {
     pub fn new() -> Self {
         let functions = Acl::new(HashMap::new());
         let nodes = HashMap::new();
+        let nodes_seq = Vec::new();
         let rules = HashMap::new();
         let rh = Self {
             functions,
             nodes,
+            nodes_seq,
             exec: rules,
         };
         rh.raw_register_function("contain", ArrayContain {})
@@ -71,11 +74,36 @@ impl Rush {
         for i in nodes {
             ns.push(Box::new(i));
         }
+        let mut index = usize::MAX;
+        if self.nodes.contains_key(&name) {
+            for (i,n) in self.nodes_seq.iter().enumerate(){
+                if n == &name{
+                    index = i;
+                    break
+                }
+            }
+        }
+        if index != usize::MAX{
+            self.nodes_seq.remove(index);
+        }
+        self.nodes_seq.push(name.clone());
         self.nodes.insert(name.clone(), ns);
         self.exec.insert(name, Box::new(exec));
         self
     }
     pub fn delete_rule<T: AsRef<str>>(&mut self, name: T) {
+        let mut index = usize::MAX;
+        if self.exec.contains_key(name.as_ref()) {
+            for (i,n) in self.nodes_seq.iter().enumerate(){
+                if n == name.as_ref() {
+                    index = i;
+                    break
+                }
+            }
+        }
+        if index != usize::MAX{
+            self.nodes_seq.remove(index);
+        }
         self.nodes.remove(name.as_ref());
         self.exec.remove(name.as_ref());
     }
@@ -118,7 +146,8 @@ impl Rush {
     /// 2. 找出规则进行结果生成
     fn flow_value(&self, obj: Value) -> anyhow::Result<Value> {
         let mut rules = vec![];
-        'lp: for (k, v) in self.nodes.iter() {
+        'lp: for k in self.nodes_seq.iter() {
+            let v = self.nodes.get(k).unwrap();
             for i in v.iter() {
                 if !i.when(self.functions.share(), &obj)? {
                     continue 'lp;
